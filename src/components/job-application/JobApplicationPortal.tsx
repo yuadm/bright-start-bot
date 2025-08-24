@@ -196,6 +196,8 @@ function JobApplicationPortalContent() {
       if (error) throw error;
 
       setIsSubmitted(true);
+      // Clear the draft after successful submission
+      localStorage.removeItem(DRAFT_KEY);
       toast({
         title: "Application Submitted",
         description: "Your job application has been submitted successfully. We'll be in touch soon!",
@@ -230,7 +232,13 @@ function JobApplicationPortalContent() {
             <Button variant="outline" onClick={handleDownloadPdf} className="w-full">
               Download a copy (PDF)
             </Button>
-            <Button onClick={() => window.location.href = '/'} className="w-full">
+            <Button onClick={() => {
+              // Reset form data and redirect to start fresh application
+              setFormData(initialFormData);
+              setCurrentStep(1);
+              setIsSubmitted(false);
+              window.location.href = '/';
+            }} className="w-full">
               Return to Homepage
             </Button>
           </CardContent>
@@ -279,13 +287,42 @@ function JobApplicationPortalContent() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.personalInfo.title && formData.personalInfo.fullName && formData.personalInfo.email && formData.personalInfo.telephone;
+        return formData.personalInfo.title && formData.personalInfo.fullName && formData.personalInfo.email && formData.personalInfo.telephone && formData.personalInfo.dateOfBirth;
       case 2:
         return formData.availability.hoursPerWeek && formData.availability.hasRightToWork;
       case 3:
         return formData.emergencyContact.fullName && formData.emergencyContact.relationship && formData.emergencyContact.contactNumber && formData.emergencyContact.howDidYouHear;
       case 5:
         return formData.references.reference1.name && formData.references.reference2.name;
+      case 7:
+        // Declaration step validation
+        const declaration = formData.declaration;
+        const requiredFields = [
+          'socialServiceEnquiry', 'convictedOfOffence', 'safeguardingInvestigation',
+          'criminalConvictions', 'healthConditions', 'cautionsReprimands'
+        ];
+        
+        // Check if all required fields are answered
+        const allAnswered = requiredFields.every(field => declaration[field as keyof Declaration]);
+        
+        if (!allAnswered) return false;
+        
+        // Check if any "yes" answers have required details
+        const needsDetails = [
+          { field: 'socialServiceEnquiry', detail: 'socialServiceDetails' },
+          { field: 'convictedOfOffence', detail: 'convictedDetails' },
+          { field: 'safeguardingInvestigation', detail: 'safeguardingDetails' },
+          { field: 'criminalConvictions', detail: 'criminalDetails' },
+          { field: 'healthConditions', detail: 'healthDetails' },
+          { field: 'cautionsReprimands', detail: 'cautionsDetails' }
+        ];
+        
+        return needsDetails.every(({ field, detail }) => {
+          if (declaration[field as keyof Declaration] === 'yes') {
+            return declaration[detail as keyof Declaration]?.trim();
+          }
+          return true;
+        });
       case 8:
         return formData.termsPolicy.consentToTerms && formData.termsPolicy.signature && formData.termsPolicy.fullName && formData.termsPolicy.date;
       default:
