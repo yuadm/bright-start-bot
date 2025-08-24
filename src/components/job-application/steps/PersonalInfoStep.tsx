@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Plus, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DateTextPicker } from '@/components/ui/date-text-picker';
 
 interface PersonalInfoStepProps {
   data: PersonalInfo;
@@ -162,7 +162,11 @@ export function PersonalInfoStep({ data, updateData }: PersonalInfoStepProps) {
             value={data.confirmEmail}
             onChange={(e) => updateData('confirmEmail', e.target.value)}
             required
+            className={data.email && data.confirmEmail && data.email !== data.confirmEmail ? "border-destructive" : ""}
           />
+          {data.email && data.confirmEmail && data.email !== data.confirmEmail && (
+            <p className="text-sm text-destructive mt-1">Emails do not match</p>
+          )}
         </div>
 
         <div>
@@ -182,10 +186,16 @@ export function PersonalInfoStep({ data, updateData }: PersonalInfoStepProps) {
 
         <div>
           <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-          <DatePicker
-            selected={data.dateOfBirth ? new Date(data.dateOfBirth) : undefined}
-            onChange={(date) => updateData('dateOfBirth', date ? date.toISOString().split('T')[0] : '')}
-            placeholder="Select date of birth"
+          <DateTextPicker
+            value={data.dateOfBirth ? new Date(data.dateOfBirth) : data.dateOfBirth}
+            onChange={(value) => {
+              if (value instanceof Date) {
+                updateData('dateOfBirth', value.toISOString().split('T')[0]);
+              } else {
+                updateData('dateOfBirth', value || '');
+              }
+            }}
+            placeholder="Select date of birth or enter text"
           />
         </div>
 

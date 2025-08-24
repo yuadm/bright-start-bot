@@ -97,12 +97,6 @@ function JobApplicationPortalContent() {
     } catch {}
   }, [formData, currentStep]);
 
-  const clearDraft = () => {
-    try {
-      localStorage.removeItem(DRAFT_KEY);
-      toast({ title: 'Draft cleared', description: 'Your draft has been removed.' });
-    } catch {}
-  };
 
   const totalSteps = 8;
 
@@ -281,7 +275,7 @@ function JobApplicationPortalContent() {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return formData.personalInfo.title && formData.personalInfo.fullName && formData.personalInfo.email && formData.personalInfo.telephone && formData.personalInfo.dateOfBirth;
+        return formData.personalInfo.title && formData.personalInfo.fullName && formData.personalInfo.email && formData.personalInfo.confirmEmail && formData.personalInfo.email === formData.personalInfo.confirmEmail && formData.personalInfo.telephone && formData.personalInfo.dateOfBirth;
       case 2:
         return formData.availability.hoursPerWeek && formData.availability.hasRightToWork;
       case 3:
@@ -358,12 +352,6 @@ function JobApplicationPortalContent() {
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Homepage
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={clearDraft}
-            >
-              Clear Draft
             </Button>
           </div>
           

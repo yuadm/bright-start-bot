@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DatePicker } from '@/components/ui/date-picker';
+import { DateTextPicker } from '@/components/ui/date-text-picker';
 
 interface TermsPolicyStepProps {
   data: TermsPolicy;
@@ -60,10 +60,16 @@ export function TermsPolicyStep({ data, updateData }: TermsPolicyStepProps) {
 
         <div>
           <Label htmlFor="date">Date *</Label>
-          <DatePicker
-            selected={data.date ? new Date(data.date) : undefined}
-            onChange={(date) => updateData('date', date ? date.toISOString().split('T')[0] : '')}
-            placeholder="Select today's date"
+          <DateTextPicker
+            value={data.date ? new Date(data.date) : data.date}
+            onChange={(value) => {
+              if (value instanceof Date) {
+                updateData('date', value.toISOString().split('T')[0]);
+              } else {
+                updateData('date', value || '');
+              }
+            }}
+            placeholder="Select today's date or enter text"
           />
         </div>
       </div>
