@@ -19,6 +19,7 @@ import { DatePickerWithRange, DatePicker } from "@/components/ui/date-picker";
 import { DateRange } from "react-day-picker";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { TimeSlotsList } from "./TimeSlotsList";
+
 // Helper function to format dates from YYYY-MM-DD to MM/DD/YYYY
 const formatDateDisplay = (dateString: string | null | undefined): string => {
   if (!dateString) return 'Not provided';
@@ -172,7 +173,7 @@ export function JobApplicationsContent() {
     }
   };
 
-  const sendReferenceEmail = (application: JobApplication, referenceIndex: number) => {
+  const sendReferenceEmail = async (application: JobApplication, referenceIndex: number) => {
     const reference = referenceIndex === 1 
       ? application.employment_history?.recentEmployer 
       : application.employment_history?.previousEmployers?.[0];
@@ -192,46 +193,49 @@ export function JobApplicationsContent() {
     const position = application.personal_info?.positionAppliedFor || 'Unknown Position';
     const referenceName = reference.name || reference.company || 'Reference';
     const referenceCompany = reference.company || 'Unknown Company';
-    const referenceAddress = [
-      reference.address,
-      reference.address2,
-      reference.town,
-      reference.postcode
+    const applicantAddress = [
+      application.personal_info?.address,
+      application.personal_info?.address2,
+      application.personal_info?.town
     ].filter(Boolean).join(', ') || 'Address not provided';
+    const applicantPostcode = application.personal_info?.postcode || '';
     
-    const subject = `Reference Request for ${applicantName} - ${position} Position`;
-    const body = `Dear ${referenceName},
+    try {
+      const { data, error } = await supabase.functions.invoke('send-reference-email', {
+        body: {
+          applicationId: application.id,
+          applicantName,
+          applicantAddress,
+          applicantPostcode,
+          positionAppliedFor: position,
+          referenceEmail: reference.email,
+          referenceName,
+          referenceCompany,
+          companyName: companySettings?.name || 'Our Company'
+        },
+      });
 
-We hope this email finds you well.
+      if (error) throw error;
 
-We are writing to request a reference for ${applicantName}, who has applied for the position of ${position} with our company. ${applicantName} has listed you as a reference.
-
-Could you please provide information about:
-- The nature and duration of your relationship with ${applicantName}
-- Their professional capabilities and work ethic
-- Any relevant skills or qualities that would be pertinent to this role
-- Their reliability and punctuality
-- Would you employ this person again? If not, why not?
-
-Your insights would be greatly appreciated and will help us make an informed decision.
-
-Thank you for your time and assistance.
-
-Best regards,
-Mohamed Ahmed
-HR Department
-
-Reference Details:
-Company: ${referenceCompany}
-Contact Person: ${referenceName}
-Position: ${reference.position || 'Not specified'}
-Phone: ${reference.telephone || 'Not provided'}
-Address: ${referenceAddress}
-
-Please complete and return this reference as soon as possible.`;
-
-    const mailtoLink = `mailto:${reference.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoLink;
+      if (data.success) {
+        toast({
+          title: "Reference Request Sent",
+          description: `Reference request sent to ${referenceName} (${reference.email})`,
+        });
+        
+        // Refresh applications to show updated status
+        fetchApplications();
+      } else {
+        throw new Error(data.error || 'Failed to send reference request');
+      }
+    } catch (error: any) {
+      console.error('Error sending reference email:', error);
+      toast({
+        title: "Failed to Send",
+        description: error.message || "Failed to send reference request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSort = (field: JobApplicationSortField) => {
@@ -776,40 +780,82 @@ try {
       
       {/* Reference Email Actions */}
       {!isEditing && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Reference Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSendReferenceEmail(application, 1)}
-                disabled={!application.employment_history?.recentEmployer?.email}
-                className="flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                Email Recent Employer
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSendReferenceEmail(application, 2)}
-                disabled={!application.employment_history?.previousEmployers?.[0]?.email}
-                className="flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                Email Previous Employer
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground mt-2">
-              Send reference request emails to employers
-            </p>
-          </CardContent>
-        </Card>
+        <ReferenceActions 
+          application={application}
+          onSendReferenceEmail={onSendReferenceEmail}
+        />
       )}
     </div>
+  );
+}
+
+// Component to handle reference actions with status
+function ReferenceActions({ 
+  application, 
+  onSendReferenceEmail 
+}: { 
+  application: JobApplication;
+  onSendReferenceEmail: (app: JobApplication, refIndex: number) => void;
+}) {
+  const renderReferenceButton = (
+    label: string,
+    email: string | undefined,
+    refIndex: number
+  ) => {
+    if (!email) {
+      return (
+        <Button variant="outline" size="sm" disabled className="flex items-center gap-2">
+          <Send className="w-4 h-4" />
+          {label} (No Email)
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => onSendReferenceEmail(application, refIndex)}
+        className="flex items-center gap-2"
+      >
+        <Send className="w-4 h-4" />
+        Send {label}
+      </Button>
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Reference Actions</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-medium mb-2">Recent Employer Reference</h4>
+            {renderReferenceButton(
+              'Reference Request',
+              application.employment_history?.recentEmployer?.email,
+              1
+            )}
+          </div>
+          
+          {application.employment_history?.previousEmployers?.[0]?.email && (
+            <div>
+              <h4 className="text-sm font-medium mb-2">Previous Employer Reference</h4>
+              {renderReferenceButton(
+                'Reference Request', 
+                application.employment_history?.previousEmployers?.[0]?.email,
+                2
+              )}
+            </div>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground mt-4">
+          Send secure reference request emails with one-time use links
+        </p>
+      </CardContent>
+    </Card>
   );
 }
 
