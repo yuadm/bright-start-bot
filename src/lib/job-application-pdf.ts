@@ -108,7 +108,19 @@ function addKeyValue(ctx: WriterCtx, label: string, value?: string) {
   const maxWidth = ctx.page.getWidth() - ctx.margin * 2
   const labelText = `${label}: `
   const labelWidth = ctx.boldFont.widthOfTextAtSize(labelText, ctx.fontSize)
-  
+
+  // If label is too long to fit on one line, wrap label and render value below
+  if (labelWidth > maxWidth) {
+    // Wrapped label (bold, black)
+    drawText(ctx, label, { bold: true })
+    // Value (blue) on next lines
+    const valueText = value ?? ''
+    if (valueText) {
+      drawText(ctx, valueText, { blue: true })
+    }
+    return
+  }
+
   // Draw label in black
   ctx.page.drawText(labelText, {
     x: ctx.margin,
@@ -117,12 +129,12 @@ function addKeyValue(ctx: WriterCtx, label: string, value?: string) {
     font: ctx.boldFont,
     color: rgb(ctx.color.r, ctx.color.g, ctx.color.b),
   })
-  
-  // Draw value in blue on the same line if it fits, otherwise wrap
+
+  // Draw value in blue on the same line if it fits, otherwise wrap to next lines
   const valueText = value ?? ''
   const remainingWidth = maxWidth - labelWidth
   const valueWidth = ctx.font.widthOfTextAtSize(valueText, ctx.fontSize)
-  
+
   if (valueWidth <= remainingWidth) {
     // Fits on same line
     ctx.page.drawText(valueText, {
@@ -297,10 +309,6 @@ if (options?.logoUrl) {
 }
 
 drawText(ctx, 'Job Application Summary', { bold: true, size: 16 })
-addSpacer(ctx, 6)
-drawText(ctx, `Applicant: ${data.personalInfo?.fullName ?? ''}`)
-drawText(ctx, `Position Applied For: ${data.personalInfo?.positionAppliedFor ?? ''}`)
-drawText(ctx, `Generated: ${formatDateDDMMYYYY(new Date().toISOString())}`)
 addSpacer(ctx, 10)
 
   // Personal Information
@@ -493,14 +501,10 @@ addSpacer(ctx, 10)
 
   // Terms & Policy
   addSectionTitle(ctx, '8. Terms & Policy')
-  addKeyValue(ctx, 'Consent to Terms', data.termsPolicy?.consentToTerms ? 'Yes' : 'No')
+addKeyValue(ctx, 'Consent to Terms', data.termsPolicy?.consentToTerms ? 'Yes' : 'No')
   addKeyValue(ctx, 'Signature (name)', data.termsPolicy?.signature)
-  addKeyValue(ctx, 'Full Name', data.termsPolicy?.fullName)
   addKeyValue(ctx, 'Date', formatDateDDMMYYYY(data.termsPolicy?.date))
 
-  // Footer note
-  addSpacer(ctx, 10)
-  drawText(ctx, 'This is a system-generated document based on the submitted application.', { size: 10 })
 
   const bytes = await doc.save()
   const blob = new Blob([bytes], { type: 'application/pdf' })
