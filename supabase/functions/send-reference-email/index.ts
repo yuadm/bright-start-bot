@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.5";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,7 +7,9 @@ const corsHeaders = {
 };
 
 interface ReferenceEmailRequest {
+  applicationId: string;
   applicantName: string;
+  applicantFirstName: string;
   applicantAddress: string;
   applicantPostcode: string;
   positionAppliedFor?: string;
@@ -15,6 +18,12 @@ interface ReferenceEmailRequest {
   referenceCompany?: string;
   referenceAddress?: string;
   companyName?: string;
+  referenceType: 'employer' | 'character';
+  employmentDetails?: {
+    startDate?: string;
+    endDate?: string;
+    company?: string;
+  };
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -25,7 +34,9 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { 
+      applicationId,
       applicantName,
+      applicantFirstName,
       applicantAddress,
       applicantPostcode,
       positionAppliedFor,
@@ -34,7 +45,14 @@ const handler = async (req: Request): Promise<Response> => {
       referenceCompany,
       referenceAddress,
       companyName,
+      referenceType,
+      employmentDetails
     }: ReferenceEmailRequest = await req.json();
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Derive site origin from request for building public URL
     const siteOrigin = req.headers.get("origin") || `${new URL(req.url).protocol}//${new URL(req.url).host}`;
@@ -45,13 +63,40 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Sending reference email to:", referenceEmail, "for applicant:", applicantName);
 
+    // Generate email content based on reference type
+    let emailSubject: string;
+    let emailContent: string;
+
+    if (referenceType === 'employer') {
+      emailSubject = `Request for Employer Reference for ${applicantName}`;
+      emailContent = `
+        <p style="margin:0 0 16px 0;">Dear ${referenceName},</p>
+        <p style="margin:0 0 16px 0;">I hope this message finds you well.</p>
+        <p style="margin:0 0 16px 0;">
+          ${applicantName} has applied for the position of ${roleTitle} at ${safeCompanyName}, and listed you as a previous employer. 
+          As part of our recruitment process, we would appreciate it if you could provide an employment reference regarding 
+          ${applicantFirstName}'s time at ${employmentDetails?.company || referenceCompany}${employmentDetails?.startDate && employmentDetails?.endDate ? `, from ${employmentDetails.startDate} to ${employmentDetails.endDate}` : ''}.
+        </p>
+      `;
+    } else {
+      emailSubject = `Request for Character Reference for ${applicantName}`;
+      emailContent = `
+        <p style="margin:0 0 16px 0;">Dear ${referenceName},</p>
+        <p style="margin:0 0 16px 0;">I hope this message finds you well.</p>
+        <p style="margin:0 0 16px 0;">
+          ${applicantName} has applied for the position of ${roleTitle} at ${safeCompanyName} and has listed you as a character reference. 
+          We would appreciate it if you could provide your perspective on ${applicantFirstName}'s personal qualities, integrity, reliability, and overall character.
+        </p>
+      `;
+    }
+
     const emailHtml = `
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reference Request – ${applicantName}</title>
+    <title>${emailSubject}</title>
     <style>
       body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;margin:0;padding:0}
       .container{max-width:640px;margin:0 auto;background:#fff}
@@ -63,19 +108,19 @@ const handler = async (req: Request): Promise<Response> => {
   <body>
     <div class="container">
       <div class="content">
-        <p style="margin:0 0 16px 0;">Dear ${referenceName},</p>
-        <p style="margin:0 0 16px 0;">
-          ${applicantName}, of ${applicantAddress}, ${applicantPostcode}, has applied for the position of ${roleTitle} at ${safeCompanyName}. They have listed you as a referee, and we would be grateful if you could provide a reference regarding their suitability for this role.
-        </p>
-        <p style="margin:0 0 16px 0;">Please complete your reference at the secure link below:</p>
+        ${emailContent}
+        <p style="margin:0 0 16px 0;">To provide your reference, please click the link below and complete the short form:</p>
         <p style="margin:0 0 24px 0;">
-          <a href="${referenceLink}" class="btn">Provide Reference</a>
+          <a href="${referenceLink}" class="btn">👉 Provide Reference</a>
         </p>
+        <p style="margin:0 0 16px 0;">Your feedback will be treated with confidentiality and will play a valuable role in helping us make an informed hiring decision.</p>
+        <p style="margin:0 0 16px 0;">If you have any questions or prefer to speak with us directly, feel free to contact me at your convenience.</p>
         <p style="margin:0 0 8px 0; color:#6b7280; font-size:12px;">
           If the button does not work, copy and paste this URL into your browser:
         </p>
         <p style="word-break:break-all; color:#374151; font-size:12px;">${referenceLink}</p>
-        <p style="margin:24px 0 0 0;">Kind regards,<br/>${safeCompanyName} Recruitment Team</p>
+        <p style="margin:24px 0 0 0;">Thank you very much for your time and assistance.</p>
+        <p style="margin:16px 0 0 0;">Best regards,<br/>Yusuf<br/>Hr<br/>${safeCompanyName}</p>
       </div>
       <div class="footer">
         <p style="margin:0;">This link is unique to you. Please do not share it.</p>
@@ -91,11 +136,34 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("BREVO_API_KEY environment variable is not set");
     }
 
+    // Store reference request in database
+    const { data: requestData, error: dbError } = await supabase
+      .from('reference_requests')
+      .insert({
+        application_id: applicationId,
+        reference_email: referenceEmail,
+        reference_name: referenceName,
+        reference_type: referenceType,
+        reference_token: referenceToken,
+        reference_data: {
+          company: referenceCompany,
+          address: referenceAddress,
+          employmentDetails: employmentDetails
+        }
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error("Database error:", dbError);
+      throw new Error(`Database error: ${dbError.message}`);
+    }
+
     const payload = {
-      sender: { name: "Document Signing System", email: "yuadm3@gmail.com" },
-      replyTo: { name: "Document Signing System", email: "yuadm3@gmail.com" },
+      sender: { name: `${safeCompanyName} HR`, email: "yuadm3@gmail.com" },
+      replyTo: { name: `${safeCompanyName} HR`, email: "yuadm3@gmail.com" },
       to: [{ email: referenceEmail, name: referenceName }],
-      subject: `Reference Request – ${applicantName}`,
+      subject: emailSubject,
       htmlContent: emailHtml,
     };
 

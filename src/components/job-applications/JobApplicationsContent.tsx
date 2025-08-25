@@ -19,6 +19,7 @@ import { DatePickerWithRange, DatePicker } from "@/components/ui/date-picker";
 import { DateRange } from "react-day-picker";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { TimeSlotsList } from "./TimeSlotsList";
+import { ReferenceButtons } from "./ReferenceButtons";
 // Helper function to format dates from YYYY-MM-DD to MM/DD/YYYY
 const formatDateDisplay = (dateString: string | null | undefined): string => {
   if (!dateString) return 'Not provided';
@@ -778,26 +779,20 @@ try {
       {!isEditing && (
         <Card>
           <CardHeader>
-            <CardTitle>Reference Actions</CardTitle>
+            <CardTitle>Reference Management</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSendReferenceEmail(application, 1)}
-                disabled={!application.employment_history?.recentEmployer?.email}
-                className="flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                Email Recent Employer
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onSendReferenceEmail(application, 2)}
-                disabled={!application.employment_history?.previousEmployers?.[0]?.email}
-                className="flex items-center gap-2"
+            <ReferenceButtons 
+              application={application}
+              references={toJobAppData().references}
+              onUpdate={onUpdate}
+            />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+};
               >
                 <Send className="w-4 h-4" />
                 Email Previous Employer
