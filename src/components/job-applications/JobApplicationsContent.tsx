@@ -699,6 +699,9 @@ try {
 
       if (error) throw error;
 
+      // Update the local application state with the saved data
+      Object.assign(application, editData);
+
       toast({
         title: "Application Updated",
         description: "The job application has been updated successfully.",
