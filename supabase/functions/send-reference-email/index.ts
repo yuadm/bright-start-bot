@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.5';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,7 +6,6 @@ const corsHeaders = {
 };
 
 interface ReferenceEmailRequest {
-  applicationId: string;
   applicantName: string;
   applicantAddress: string;
   applicantPostcode: string;
@@ -27,7 +25,6 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const { 
-      applicationId,
       applicantName,
       applicantAddress,
       applicantPostcode,
@@ -39,41 +36,9 @@ const handler = async (req: Request): Promise<Response> => {
       companyName,
     }: ReferenceEmailRequest = await req.json();
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
-    // Create reference request in database
-    const referenceToken = crypto.randomUUID();
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 14); // 14 days from now
-
-    const { data: referenceRequest, error: dbError } = await supabase
-      .from('reference_requests')
-      .insert({
-        application_id: applicationId,
-        reference_email: referenceEmail,
-        reference_name: referenceName,
-        applicant_name: applicantName,
-        applicant_address: applicantAddress,
-        applicant_postcode: applicantPostcode,
-        position_applied_for: positionAppliedFor,
-        company_name: companyName,
-        token: referenceToken,
-        expires_at: expiresAt.toISOString(),
-        status: 'sent'
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      throw new Error(`Failed to create reference request: ${dbError.message}`);
-    }
-
     // Derive site origin from request for building public URL
     const siteOrigin = req.headers.get("origin") || `${new URL(req.url).protocol}//${new URL(req.url).host}`;
+    const referenceToken = crypto.randomUUID();
     const safeCompanyName = companyName && companyName.trim().length > 0 ? companyName : 'Your Company Name';
     const roleTitle = positionAppliedFor && positionAppliedFor.trim().length > 0 ? positionAppliedFor : 'Support Worker/Carer';
     const referenceLink = `${siteOrigin}/reference?token=${referenceToken}`;
@@ -86,12 +51,12 @@ const handler = async (req: Request): Promise<Response> => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reference Request for ${applicantName}</title>
+    <title>Reference Request – ${applicantName}</title>
     <style>
       body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f9fafb;margin:0;padding:0}
       .container{max-width:640px;margin:0 auto;background:#fff}
       .content{padding:32px}
-      .btn{display:inline-block;background:#111827;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;margin:16px 0}
+      .btn{display:inline-block;background:#111827;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600}
       .footer{background:#f3f4f6;padding:20px;text-align:center;color:#6b7280;font-size:12px}
     </style>
   </head>
@@ -99,26 +64,21 @@ const handler = async (req: Request): Promise<Response> => {
     <div class="container">
       <div class="content">
         <p style="margin:0 0 16px 0;">Dear ${referenceName},</p>
-        <p style="margin:0 0 16px 0;">I hope this message finds you well.</p>
         <p style="margin:0 0 16px 0;">
-          I am reaching out to request a professional reference for ${applicantName}, who has applied for the position of ${roleTitle} at ${safeCompanyName}. ${applicantName.split(' ')[0] || applicantName} listed you as a reference, and we would greatly appreciate your feedback regarding ${applicantName.split(' ')[0] || applicantName}'s qualifications, work ethic, and overall suitability for the role.
+          ${applicantName}, of ${applicantAddress}, ${applicantPostcode}, has applied for the position of ${roleTitle} at ${safeCompanyName}. They have listed you as a referee, and we would be grateful if you could provide a reference regarding their suitability for this role.
         </p>
-        <p style="margin:0 0 16px 0;">To provide your reference, please click the link below and complete the short form:</p>
-        <p style="margin:0 0 16px 0; text-align:center;">
-          👉 <a href="${referenceLink}" class="btn">Provide Reference</a>
+        <p style="margin:0 0 16px 0;">Please complete your reference at the secure link below:</p>
+        <p style="margin:0 0 24px 0;">
+          <a href="${referenceLink}" class="btn">Provide Reference</a>
         </p>
-        <p style="margin:0 0 16px 0;">
-          Your input will play a valuable role in our hiring process, and we sincerely thank you for your time and assistance. If you have any questions or would prefer to speak directly, please feel free to contact me.
+        <p style="margin:0 0 8px 0; color:#6b7280; font-size:12px;">
+          If the button does not work, copy and paste this URL into your browser:
         </p>
-        <p style="margin:24px 0 0 0;">
-          Best regards,<br/>
-          Yusuf<br/>
-          HR<br/>
-          ${safeCompanyName}
-        </p>
+        <p style="word-break:break-all; color:#374151; font-size:12px;">${referenceLink}</p>
+        <p style="margin:24px 0 0 0;">Kind regards,<br/>${safeCompanyName} Recruitment Team</p>
       </div>
       <div class="footer">
-        <p style="margin:0;">This link is unique to you and will expire in 14 days. Please do not share it.</p>
+        <p style="margin:0;">This link is unique to you. Please do not share it.</p>
       </div>
     </div>
   </body>
