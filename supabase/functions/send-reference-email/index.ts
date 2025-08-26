@@ -136,41 +136,23 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("BREVO_API_KEY environment variable is not set");
     }
 
-    // Store reference request in database
+    // Store reference request in database (align with actual table schema)
     const { data: requestData, error: dbError } = await supabase
       .from('reference_requests')
       .insert({
-        id: crypto.randomUUID(),
         application_id: applicationId,
         applicant_name: applicantName || 'Unknown Applicant',
-        applicant_first_name: applicantFirstName || (applicantName?.split(' ')[0] || 'Applicant'),
         applicant_address: applicantAddress || '',
         applicant_postcode: applicantPostcode || '',
-        position_applied_for: roleTitle || 'Support Worker/Carer',
+        position_applied_for: roleTitle || null,
         reference_email: referenceEmail,
         reference_name: referenceName || referenceEmail,
-        reference_company: referenceCompany || employmentDetails?.company || '',
-        reference_address: referenceAddress || '',
-        company_name: safeCompanyName,
+        reference_company: referenceCompany || employmentDetails?.company || null,
+        reference_address: referenceAddress || null,
+        company_name: safeCompanyName || null,
         reference_type: referenceType,
-        reference_token: referenceToken,
-        status: 'pending',
-        expires_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days
-        is_expired: false,
+        token: referenceToken,
         reference_data: {
-          applicant: {
-            name: applicantName,
-            firstName: applicantFirstName,
-            address: applicantAddress,
-            postcode: applicantPostcode,
-            positionAppliedFor: roleTitle,
-          },
-          reference: {
-            name: referenceName,
-            email: referenceEmail,
-            company: referenceCompany,
-            address: referenceAddress,
-          },
           employmentDetails: employmentDetails || null
         }
       })
