@@ -293,88 +293,23 @@ export async function generateJobApplicationPdf(
     blueColor: { r: 0.2, g: 0.4, b: 0.8 },
   }
 
-// Header with company logo and name (matching supervision/spot check style)
-let headerHeight = 0
-if (options?.logoUrl || options?.companyName) {
-  headerHeight = options?.logoUrl ? 120 : 100
-  
-  // Header background
-  page.drawRectangle({ 
-    x: 0, 
-    y: page.getHeight() - headerHeight, 
-    width: page.getWidth(), 
-    height: headerHeight, 
-    color: rgb(0.98, 0.98, 0.985) 
-  })
-  
-  const centerX = page.getWidth() / 2
-  let cursorY = page.getHeight() - 16
-  
-  // Logo (centered)
-  if (options?.logoUrl) {
-    const img = await embedImageFromUrl(doc, options.logoUrl)
-    if (img) {
-      const logoW = 56
-      const logoH = (img.height / img.width) * logoW
-      const logoX = centerX - logoW / 2
-      const logoY = page.getHeight() - headerHeight + headerHeight - logoH - 8
-      page.drawImage(img, { x: logoX, y: logoY, width: logoW, height: logoH })
-      cursorY = logoY - 6
-    }
+// Header with optional company logo
+if (options?.logoUrl) {
+  const img = await embedImageFromUrl(doc, options.logoUrl)
+  if (img) {
+    const maxW = 140
+    const maxH = 60
+    const scale = Math.min(maxW / img.width, maxH / img.height, 1)
+    const dw = img.width * scale
+    const dh = img.height * scale
+    const x = (page.getWidth() - dw) / 2
+    const y = page.getHeight() - ctx.margin - dh
+    page.drawImage(img, { x, y, width: dw, height: dh })
+    ctx.y = y - 10
   }
-  
-  // Company name (centered)
-  if (options?.companyName) {
-    const companySize = 13
-    const companyWidth = boldFont.widthOfTextAtSize(options.companyName, companySize)
-    page.drawText(options.companyName, {
-      x: centerX - companyWidth / 2,
-      y: cursorY - companySize,
-      size: companySize,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    })
-    cursorY -= companySize + 2
-  }
-  
-  // Report title (centered)
-  const title = 'Job Application Summary'
-  const titleSize = 12
-  const titleWidth = boldFont.widthOfTextAtSize(title, titleSize)
-  page.drawText(title, {
-    x: centerX - titleWidth / 2,
-    y: cursorY - titleSize - 2,
-    size: titleSize,
-    font: boldFont,
-    color: rgb(0, 0, 0),
-  })
-  cursorY -= titleSize + 8
-  
-  // Date (centered)
-  const dateText = new Date().toLocaleDateString()
-  const dateSize = 11
-  const dateWidth = font.widthOfTextAtSize(dateText, dateSize)
-  page.drawText(dateText, {
-    x: centerX - dateWidth / 2,
-    y: cursorY - dateSize,
-    size: dateSize,
-    font,
-    color: rgb(0.6, 0.6, 0.6),
-  })
-  
-  // Divider
-  page.drawRectangle({
-    x: ctx.margin,
-    y: page.getHeight() - headerHeight - 1,
-    width: page.getWidth() - ctx.margin * 2,
-    height: 1,
-    color: rgb(0.85, 0.85, 0.85),
-  })
-  
-  ctx.y = page.getHeight() - headerHeight - 20
-} else {
-  drawText(ctx, 'Job Application Summary', { bold: true, size: 16 })
 }
+
+drawText(ctx, 'Job Application Summary', { bold: true, size: 16 })
 addSpacer(ctx, 10)
 
   // Personal Information
