@@ -70,6 +70,7 @@ export interface EmploymentHistory {
 
 export interface References {
   reference1: {
+    referenceType: 'employer' | 'character';
     name: string;
     company: string;
     jobTitle: string;
@@ -79,8 +80,16 @@ export interface References {
     town: string;
     contactNumber: string;
     postcode: string;
+    // Employer reference specific fields
+    employmentFrom?: string;
+    employmentTo?: string;
+    employmentPosition?: string;
+    // Character reference specific fields
+    relationshipType?: string;
+    knownDuration?: string;
   };
   reference2: {
+    referenceType: 'employer' | 'character';
     name: string;
     company: string;
     jobTitle: string;
@@ -90,6 +99,13 @@ export interface References {
     town: string;
     contactNumber: string;
     postcode: string;
+    // Employer reference specific fields
+    employmentFrom?: string;
+    employmentTo?: string;
+    employmentPosition?: string;
+    // Character reference specific fields
+    relationshipType?: string;
+    knownDuration?: string;
   };
 }
 

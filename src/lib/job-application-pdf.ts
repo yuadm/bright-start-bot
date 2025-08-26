@@ -432,8 +432,10 @@ addSpacer(ctx, 10)
   refs
     .filter((r) => r && (r.name || r.company || r.email))
     .forEach((ref, idx) => {
-      drawText(ctx, `Reference ${idx + 1}`, { bold: true })
-      renderTwoColGrid(ctx, [
+      const referenceType = ref.referenceType === 'employer' ? 'Employer Reference' : 'Character Reference'
+      drawText(ctx, `Reference ${idx + 1} (${referenceType})`, { bold: true })
+      
+      const baseFields: Array<[string, string | undefined]> = [
         ['Name', ref.name],
         ['Company', ref.company],
         ['Job Title', ref.jobTitle],
@@ -442,8 +444,24 @@ addSpacer(ctx, 10)
         ['Address2', ref.address2],
         ['Town', ref.town],
         ['Contact Number', ref.contactNumber],
-        ['Postcode', ref.postcode],
-      ])
+        ['Postcode', ref.postcode]
+      ]
+      
+      // Add type-specific fields
+      if (ref.referenceType === 'employer') {
+        baseFields.push(
+          ['Employment From', formatDateDDMMYYYY(ref.employmentFrom)],
+          ['Employment To', formatDateDDMMYYYY(ref.employmentTo)],
+          ['Position Held', ref.employmentPosition]
+        )
+      } else if (ref.referenceType === 'character') {
+        baseFields.push(
+          ['Relationship', ref.relationshipType],
+          ['Known Duration', ref.knownDuration]
+        )
+      }
+      
+      renderTwoColGrid(ctx, baseFields)
       addSpacer(ctx, 12)
     })
 
