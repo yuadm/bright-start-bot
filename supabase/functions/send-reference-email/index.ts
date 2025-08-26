@@ -135,7 +135,9 @@ const handler = async (req: Request): Promise<Response> => {
 
 
     const apiKey = Deno.env.get("BREVO_API_KEY");
+    console.log("BREVO_API_KEY exists:", !!apiKey);
     if (!apiKey) {
+      console.error("BREVO_API_KEY environment variable is not set");
       throw new Error("BREVO_API_KEY environment variable is not set");
     }
 
