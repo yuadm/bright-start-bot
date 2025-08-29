@@ -139,16 +139,16 @@ export const generateReferencePDF = (
   // Reference specific content
   ensureSpace(60);
   if (reference.reference_type === 'employer') {
-    // Employment Status
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Are you this person\'s current or previous employer?', margin, yPosition);
-    yPosition += lineHeight;
-    pdf.setFont('helvetica', 'normal');
-    const currentBox = reference.form_data.employmentStatus === 'current' ? '[X]' : '[ ]';
-    const previousBox = reference.form_data.employmentStatus === 'previous' ? '[X]' : '[ ]';
-    const neitherBox = reference.form_data.employmentStatus === 'neither' ? '[X]' : '[ ]';
-    pdf.text(`${currentBox} Current    ${previousBox} Previous    ${neitherBox} Neither`, margin, yPosition);
-    yPosition += lineHeight + 5;
+  // Employment Status
+  pdf.setFont('helvetica', 'bold');
+  pdf.text('Are you this person\'s current or previous employer?', margin, yPosition);
+  yPosition += lineHeight;
+  pdf.setFont('helvetica', 'normal');
+  const currentBox = reference.form_data.employmentStatus === 'current' ? '[X]' : '[ ]';
+  const previousBox = reference.form_data.employmentStatus === 'previous' ? '[X]' : '[ ]';
+  const neitherBox = reference.form_data.employmentStatus === 'neither' ? '[X]' : '[ ]';
+  pdf.text(`${currentBox} Current    ${previousBox} Previous    ${neitherBox} Neither`, margin, yPosition);
+  yPosition += lineHeight + 2;
 
     // Relationship Description
     ensureSpace(25);
@@ -157,7 +157,7 @@ export const generateReferencePDF = (
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
     yPosition = addWrappedText(`${reference.form_data.relationshipDescription || 'Not provided'}`, margin, yPosition, pageWidth - 2 * margin);
-    yPosition += 5;
+    yPosition += 2;
 
     // Job Title
     ensureSpace(20);
@@ -166,7 +166,7 @@ export const generateReferencePDF = (
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
     pdf.text(`${reference.form_data.jobTitle || 'Not provided'}`, margin, yPosition);
-    yPosition += lineHeight + 5;
+    yPosition += lineHeight + 2;
 
     // Employment Dates
     ensureSpace(20);
@@ -177,7 +177,7 @@ export const generateReferencePDF = (
     const startDate = reference.form_data.startDate ? new Date(reference.form_data.startDate).toLocaleDateString() : 'Not provided';
     const endDate = reference.form_data.endDate ? new Date(reference.form_data.endDate).toLocaleDateString() : 'Not provided';
     pdf.text(`From ${startDate} to ${endDate}`, margin, yPosition);
-    yPosition += lineHeight + 5;
+    yPosition += lineHeight + 2;
 
     // Attendance
     ensureSpace(20);
@@ -189,7 +189,7 @@ export const generateReferencePDF = (
     const averageBox = reference.form_data.attendance === 'average' ? '[X]' : '[ ]';
     const poorBox = reference.form_data.attendance === 'poor' ? '[X]' : '[ ]';
     pdf.text(`${goodBox} Good    ${averageBox} Average    ${poorBox} Poor`, margin, yPosition);
-    yPosition += lineHeight + 5;
+    yPosition += lineHeight + 2;
 
     // Leaving Reason
     ensureSpace(30);
@@ -198,7 +198,7 @@ export const generateReferencePDF = (
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
     yPosition = addWrappedText(`${reference.form_data.leavingReason || 'Not provided'}`, margin, yPosition, pageWidth - 2 * margin);
-    yPosition += 5;
+    yPosition += 2;
   } else {
     // Character reference specific content
     ensureSpace(40);
@@ -216,11 +216,11 @@ export const generateReferencePDF = (
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
     yPosition = addWrappedText(`${reference.form_data.relationshipDescription || 'Not provided'}`, margin, yPosition, pageWidth - 2 * margin);
-    yPosition += 10;
+    yPosition += 5;
   }
 
-  // Character qualities
-  ensureSpace(80);
+  // Character qualities - Horizontal layout in 2 columns
+  ensureSpace(60);
   pdf.setFont('helvetica', 'bold');
   pdf.text('In your opinion, which of the following describes this person (tick each that is true)?', margin, yPosition);
   yPosition += lineHeight + 3;
@@ -237,24 +237,41 @@ export const generateReferencePDF = (
   ];
 
   pdf.setFont('helvetica', 'normal');
-  qualities.forEach(quality => {
+  
+  // Display qualities in 2 columns
+  const columnWidth = (pageWidth - 2 * margin) / 2;
+  for (let i = 0; i < qualities.length; i += 2) {
     ensureSpace(8);
-    const isChecked = reference.form_data[quality.key as keyof ReferenceData];
-    const checkbox = isChecked ? '[X]' : '[ ]';
-    pdf.text(checkbox, margin, yPosition);
-    pdf.text(quality.label, margin + 10, yPosition);
+    
+    // Left column quality
+    const leftQuality = qualities[i];
+    const leftChecked = reference.form_data[leftQuality.key as keyof ReferenceData];
+    const leftCheckbox = leftChecked ? '[X]' : '[ ]';
+    pdf.text(leftCheckbox, margin, yPosition);
+    pdf.text(leftQuality.label, margin + 10, yPosition);
+    
+    // Right column quality (if exists)
+    if (i + 1 < qualities.length) {
+      const rightQuality = qualities[i + 1];
+      const rightChecked = reference.form_data[rightQuality.key as keyof ReferenceData];
+      const rightCheckbox = rightChecked ? '[X]' : '[ ]';
+      const rightStartX = margin + columnWidth;
+      pdf.text(rightCheckbox, rightStartX, yPosition);
+      pdf.text(rightQuality.label, rightStartX + 10, yPosition);
+    }
+    
     yPosition += lineHeight;
-  });
+  }
 
   // Qualities not ticked reason
-  ensureSpace(40);
-  yPosition += 5;
+  ensureSpace(30);
+  yPosition += 3;
   pdf.setFont('helvetica', 'bold');
   pdf.text('If you did not tick one or more of the above, please tell us why here:', margin, yPosition);
   yPosition += lineHeight;
   pdf.setFont('helvetica', 'normal');
   yPosition = addWrappedText(`${reference.form_data.qualitiesNotTickedReason || 'Not provided'}`, margin, yPosition, pageWidth - 2 * margin);
-  yPosition += 10;
+  yPosition += 5;
 
   // Criminal background questions - CRITICAL SECTION
   ensureSpace(100);
@@ -507,7 +524,7 @@ export const generateManualReferencePDF = (
     y += 15;
   }
 
-  // Character Assessment
+  // Character Assessment - Horizontal layout in 2 columns
   pdf.setFont('helvetica', 'bold');
   addWrappedText('In your opinion, which of the following describes this person (tick each that is true)?');
   y += 5;
@@ -524,9 +541,22 @@ export const generateManualReferencePDF = (
     'Able to work well without close supervision'
   ];
 
-  qualities.forEach(quality => {
-    addCheckboxQuestion(quality);
-  });
+  // Display qualities in 2 columns
+  const columnWidth = contentWidth / 2;
+  for (let i = 0; i < qualities.length; i += 2) {
+    // Left column quality
+    pdf.text('[ ]', margin, y);
+    pdf.text(qualities[i], margin + 10, y);
+    
+    // Right column quality (if exists)
+    if (i + 1 < qualities.length) {
+      const rightStartX = margin + columnWidth;
+      pdf.text('[ ]', rightStartX, y);
+      pdf.text(qualities[i + 1], rightStartX + 10, y);
+    }
+    
+    y += lineHeight;
+  }
 
   y += 8;
   addWrappedText('If you did not tick one or more of the above, please tell us why here:');
