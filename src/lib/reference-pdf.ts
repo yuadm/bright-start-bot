@@ -187,7 +187,7 @@ export const generateReferencePDF = (
     pdf.text('Do you know this person from outside employment or education?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('\u2610 Yes    \u2610 No', margin, yPosition);
+    pdf.text('☐ Yes    ☐ No', margin, yPosition);
     yPosition += lineHeight + 5;
 
     pdf.setFont('helvetica', 'bold');
@@ -377,7 +377,7 @@ export const generateManualReferencePDF = (
   };
 
   const addCheckboxQuestion = (label: string) => {
-    pdf.text('\u2610', margin, y);
+    pdf.text('☐', margin, y);
     pdf.text(label, margin + 10, y);
     y += lineHeight;
   };
@@ -418,7 +418,7 @@ export const generateManualReferencePDF = (
     pdf.text('Are you this person\'s current or previous employer?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('\u2610 Current    \u2610 Previous    \u2610 Neither', margin, y);
+    pdf.text('☐ Current    ☐ Previous    ☐ Neither', margin, y);
     y += 12;
 
     addLabeledLine('What is your relationship to this person (e.g. "I am her/his manager")?');
@@ -434,7 +434,7 @@ export const generateManualReferencePDF = (
     pdf.text('How would you describe their recent attendance record?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('\u2610 Good    \u2610 Average    \u2610 Poor', margin, y);
+    pdf.text('☐ Good    ☐ Average    ☐ Poor', margin, y);
     y += 12;
 
     addWrappedText('Why did the person leave your employment (if they are still employed, please write \'still employed\')?');
@@ -448,7 +448,7 @@ export const generateManualReferencePDF = (
     pdf.text('Do you know this person from outside employment or education?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('\u2610 Yes    \u2610 No', margin, y);
+    pdf.text('☐ Yes    ☐ No', margin, y);
     y += 12;
 
     addWrappedText('Please describe your relationship with this person, including how long you have known them:');
@@ -494,14 +494,14 @@ export const generateManualReferencePDF = (
   addWrappedText('The position this person has applied for involves working with vulnerable people. Are you aware of any convictions, cautions, reprimands or final warnings that the person may have received that are not \'protected\' as defined by the Rehabilitation of Offenders Act 1974 (Exceptions) Order 1975 (as amended in 2013 by SI 210 1198)?');
   y += 5;
   pdf.setFont('helvetica', 'normal');
-  pdf.text('\u2610 Yes    \u2610 No', margin, y);
+  pdf.text('☐ Yes    ☐ No', margin, y);
   y += 12;
 
   pdf.setFont('helvetica', 'bold');
   addWrappedText('To your knowledge, is this person currently the subject of any criminal proceedings (for example, charged or summoned but not yet dealt with) or any police investigation?');
   y += 5;
   pdf.setFont('helvetica', 'normal');
-  pdf.text('\u2610 Yes    \u2610 No', margin, y);
+  pdf.text('☐ Yes    ☐ No', margin, y);
   y += 12;
 
   addWrappedText('If you answered \'yes\' to either of the two previous questions, please provide details:');
