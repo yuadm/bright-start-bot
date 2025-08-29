@@ -481,53 +481,54 @@ export const generateManualReferencePDF = (
   if (data.referenceType === 'employer') {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Are you this person\'s current or previous employer?', margin, y);
-    y += 8;
+    y += 6;
     pdf.setFont('helvetica', 'normal');
     pdf.text('[ ] Current    [ ] Previous    [ ] Neither', margin, y);
-    y += 12;
+    y += 8;
 
     addLabeledLine('What is your relationship to this person (e.g. "I am her/his manager")?');
-    y += 3;
+    y += 2;
     addLabeledLine('Please state the person\'s job title:');
-    y += 3;
+    y += 2;
     addLabeledLine('Employment Start Date:');
-    y += 3;
+    y += 2;
     addLabeledLine('Employment End Date:');
-    y += 8;
+    y += 4;
 
     pdf.setFont('helvetica', 'bold');
     pdf.text('How would you describe their recent attendance record?', margin, y);
-    y += 8;
+    y += 6;
     pdf.setFont('helvetica', 'normal');
     pdf.text('[ ] Good    [ ] Average    [ ] Poor', margin, y);
-    y += 12;
+    y += 8;
 
     addWrappedText('Why did the person leave your employment (if they are still employed, please write \'still employed\')?');
-    y += 3;
+    y += 2;
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 6;
     pdf.line(margin, y, pageWidth - margin, y);
     y += 8;
-    pdf.line(margin, y, pageWidth - margin, y);
-    y += 15;
   } else {
     pdf.setFont('helvetica', 'bold');
     pdf.text('Do you know this person from outside employment or education?', margin, y);
-    y += 8;
+    y += 6;
     pdf.setFont('helvetica', 'normal');
     pdf.text('[ ] Yes    [ ] No', margin, y);
-    y += 12;
+    y += 8;
 
     addWrappedText('Please describe your relationship with this person, including how long you have known them:');
-    y += 3;
+    y += 2;
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 6;
     pdf.line(margin, y, pageWidth - margin, y);
     y += 8;
-    pdf.line(margin, y, pageWidth - margin, y);
-    y += 15;
   }
 
   // Character Assessment - Horizontal layout in 2 columns
+  ensureSpace(40);
   pdf.setFont('helvetica', 'bold');
   addWrappedText('In your opinion, which of the following describes this person (tick each that is true)?');
-  y += 5;
+  y += 3;
   pdf.setFont('helvetica', 'normal');
 
   const qualities = [
@@ -544,6 +545,8 @@ export const generateManualReferencePDF = (
   // Display qualities in 2 columns
   const columnWidth = contentWidth / 2;
   for (let i = 0; i < qualities.length; i += 2) {
+    ensureSpace(8);
+    
     // Left column quality
     pdf.text('[ ]', margin, y);
     pdf.text(qualities[i], margin + 10, y);
@@ -558,48 +561,52 @@ export const generateManualReferencePDF = (
     y += lineHeight;
   }
 
-  y += 8;
+  y += 4;
   addWrappedText('If you did not tick one or more of the above, please tell us why here:');
-  y += 3;
+  y += 2;
+  pdf.line(margin, y, pageWidth - margin, y);
+  y += 6;
   pdf.line(margin, y, pageWidth - margin, y);
   y += 8;
-  pdf.line(margin, y, pageWidth - margin, y);
-  y += 15;
 
   // Criminal Background Questions
-  ensureSpace(60);
+  ensureSpace(80);
   pdf.setFont('helvetica', 'bold');
   addWrappedText('The position this person has applied for involves working with vulnerable people. Are you aware of any convictions, cautions, reprimands or final warnings that the person may have received that are not \'protected\' as defined by the Rehabilitation of Offenders Act 1974 (Exceptions) Order 1975 (as amended in 2013 by SI 210 1198)?');
-  y += 5;
+  y += 3;
   pdf.setFont('helvetica', 'normal');
   pdf.text('[ ] Yes    [ ] No', margin, y);
-  y += 12;
+  y += 8;
 
+  ensureSpace(40);
   pdf.setFont('helvetica', 'bold');
   addWrappedText('To your knowledge, is this person currently the subject of any criminal proceedings (for example, charged or summoned but not yet dealt with) or any police investigation?');
-  y += 5;
+  y += 3;
   pdf.setFont('helvetica', 'normal');
   pdf.text('[ ] Yes    [ ] No', margin, y);
-  y += 12;
+  y += 8;
 
+  ensureSpace(30);
   addWrappedText('If you answered \'yes\' to either of the two previous questions, please provide details:');
-  y += 3;
+  y += 2;
+  pdf.line(margin, y, pageWidth - margin, y);
+  y += 6;
   pdf.line(margin, y, pageWidth - margin, y);
   y += 8;
-  pdf.line(margin, y, pageWidth - margin, y);
-  y += 15;
 
+  ensureSpace(30);
   addWrappedText('Please tell us anything else about this person that you think we should know:');
-  y += 3;
+  y += 2;
+  pdf.line(margin, y, pageWidth - margin, y);
+  y += 6;
   pdf.line(margin, y, pageWidth - margin, y);
   y += 8;
-  pdf.line(margin, y, pageWidth - margin, y);
-  y += 15;
 
+  ensureSpace(25);
   addWrappedText('Please sign and date your reference here:');
-  y += 8;
+  y += 4;
   addLabeledLine('Signature:');
-  y += 3;
+  y += 2;
   addLabeledLine('Date:');
 
   return pdf;
