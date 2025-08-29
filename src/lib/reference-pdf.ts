@@ -131,9 +131,9 @@ export const generateReferencePDF = (
     pdf.text('Are you this person\'s current or previous employer?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    const currentBox = reference.form_data.employmentStatus === 'current' ? '\u2611' : '\u2610';
-    const previousBox = reference.form_data.employmentStatus === 'previous' ? '\u2611' : '\u2610';
-    const neitherBox = reference.form_data.employmentStatus === 'neither' ? '\u2611' : '\u2610';
+    const currentBox = reference.form_data.employmentStatus === 'current' ? '☑' : '☐';
+    const previousBox = reference.form_data.employmentStatus === 'previous' ? '☑' : '☐';
+    const neitherBox = reference.form_data.employmentStatus === 'neither' ? '☑' : '☐';
     pdf.text(`${currentBox} Current    ${previousBox} Previous    ${neitherBox} Neither`, margin, yPosition);
     yPosition += lineHeight + 5;
 
@@ -168,9 +168,9 @@ export const generateReferencePDF = (
     pdf.text('How would you describe their recent attendance record?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    const goodBox = reference.form_data.attendance === 'good' ? '\u2611' : '\u2610';
-    const averageBox = reference.form_data.attendance === 'average' ? '\u2611' : '\u2610';
-    const poorBox = reference.form_data.attendance === 'poor' ? '\u2611' : '\u2610';
+    const goodBox = reference.form_data.attendance === 'good' ? '☑' : '☐';
+    const averageBox = reference.form_data.attendance === 'average' ? '☑' : '☐';
+    const poorBox = reference.form_data.attendance === 'poor' ? '☑' : '☐';
     pdf.text(`${goodBox} Good    ${averageBox} Average    ${poorBox} Poor`, margin, yPosition);
     yPosition += lineHeight + 5;
 
@@ -217,7 +217,7 @@ export const generateReferencePDF = (
   pdf.setFont('helvetica', 'normal');
   qualities.forEach(quality => {
     const isChecked = reference.form_data[quality.key as keyof ReferenceData];
-    const checkbox = isChecked ? '\u2611' : '\u2610';
+    const checkbox = isChecked ? '☑' : '☐';
     pdf.text(checkbox, margin, yPosition);
     pdf.text(quality.label, margin + 10, yPosition);
     yPosition += lineHeight;
@@ -237,8 +237,8 @@ export const generateReferencePDF = (
   yPosition = addWrappedText('The position this person has applied for involves working with vulnerable people. Are you aware of any convictions, cautions, reprimands or final warnings that the person may have received that are not protected as defined by the Rehabilitation of Offenders Act 1974 (Exceptions) Order 1975 (as amended in 2013 by SI 210 1198)?', margin, yPosition, pageWidth - 2 * margin, 11);
   yPosition += 3;
   pdf.setFont('helvetica', 'normal');
-  const convictionsYesBox = reference.form_data.convictionsKnown === 'yes' ? '\u2611' : '\u2610';
-  const convictionsNoBox = reference.form_data.convictionsKnown === 'no' ? '\u2611' : '\u2610';
+  const convictionsYesBox = reference.form_data.convictionsKnown === 'yes' ? '☑' : '☐';
+  const convictionsNoBox = reference.form_data.convictionsKnown === 'no' ? '☑' : '☐';
   pdf.text(`${convictionsYesBox} Yes    ${convictionsNoBox} No`, margin, yPosition);
   yPosition += lineHeight + 5;
 
@@ -246,8 +246,8 @@ export const generateReferencePDF = (
   yPosition = addWrappedText('To your knowledge, is this person currently the subject of any criminal proceedings (for example, charged or summoned but not yet dealt with) or any police investigation?', margin, yPosition, pageWidth - 2 * margin, 11);
   yPosition += 3;
   pdf.setFont('helvetica', 'normal');
-  const proceedingsYesBox = reference.form_data.criminalProceedingsKnown === 'yes' ? '\u2611' : '\u2610';
-  const proceedingsNoBox = reference.form_data.criminalProceedingsKnown === 'no' ? '\u2611' : '\u2610';
+  const proceedingsYesBox = reference.form_data.criminalProceedingsKnown === 'yes' ? '☑' : '☐';
+  const proceedingsNoBox = reference.form_data.criminalProceedingsKnown === 'no' ? '☑' : '☐';
   pdf.text(`${proceedingsYesBox} Yes    ${proceedingsNoBox} No`, margin, yPosition);
   yPosition += lineHeight + 5;
 
