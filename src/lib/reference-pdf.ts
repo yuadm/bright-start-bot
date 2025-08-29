@@ -131,10 +131,10 @@ export const generateReferencePDF = (
     pdf.text('Are you this person\'s current or previous employer?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    const currentSelected = reference.form_data.employmentStatus === 'current' ? '☑' : '☐';
-    const previousSelected = reference.form_data.employmentStatus === 'previous' ? '☑' : '☐';
-    const neitherSelected = reference.form_data.employmentStatus === 'neither' ? '☑' : '☐';
-    pdf.text(`${currentSelected} Current    ${previousSelected} Previous    ${neitherSelected} Neither`, margin, yPosition);
+    const currentBox = reference.form_data.employmentStatus === 'current' ? '\u2611' : '\u2610';
+    const previousBox = reference.form_data.employmentStatus === 'previous' ? '\u2611' : '\u2610';
+    const neitherBox = reference.form_data.employmentStatus === 'neither' ? '\u2611' : '\u2610';
+    pdf.text(`${currentBox} Current    ${previousBox} Previous    ${neitherBox} Neither`, margin, yPosition);
     yPosition += lineHeight + 5;
 
     // Relationship Description
@@ -168,10 +168,10 @@ export const generateReferencePDF = (
     pdf.text('How would you describe their recent attendance record?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    const goodSelected = reference.form_data.attendance === 'good' ? '☑' : '☐';
-    const averageSelected = reference.form_data.attendance === 'average' ? '☑' : '☐';
-    const poorSelected = reference.form_data.attendance === 'poor' ? '☑' : '☐';
-    pdf.text(`${goodSelected} Good    ${averageSelected} Average    ${poorSelected} Poor`, margin, yPosition);
+    const goodBox = reference.form_data.attendance === 'good' ? '\u2611' : '\u2610';
+    const averageBox = reference.form_data.attendance === 'average' ? '\u2611' : '\u2610';
+    const poorBox = reference.form_data.attendance === 'poor' ? '\u2611' : '\u2610';
+    pdf.text(`${goodBox} Good    ${averageBox} Average    ${poorBox} Poor`, margin, yPosition);
     yPosition += lineHeight + 5;
 
     // Leaving Reason
@@ -187,7 +187,7 @@ export const generateReferencePDF = (
     pdf.text('Do you know this person from outside employment or education?', margin, yPosition);
     yPosition += lineHeight;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('☐ Yes    ☐ No', margin, yPosition);
+    pdf.text('\u2610 Yes    \u2610 No', margin, yPosition);
     yPosition += lineHeight + 5;
 
     pdf.setFont('helvetica', 'bold');
@@ -217,7 +217,8 @@ export const generateReferencePDF = (
   pdf.setFont('helvetica', 'normal');
   qualities.forEach(quality => {
     const isChecked = reference.form_data[quality.key as keyof ReferenceData];
-    pdf.text(isChecked ? '☑' : '☐', margin, yPosition);
+    const checkbox = isChecked ? '\u2611' : '\u2610';
+    pdf.text(checkbox, margin, yPosition);
     pdf.text(quality.label, margin + 10, yPosition);
     yPosition += lineHeight;
   });
@@ -236,18 +237,18 @@ export const generateReferencePDF = (
   yPosition = addWrappedText('The position this person has applied for involves working with vulnerable people. Are you aware of any convictions, cautions, reprimands or final warnings that the person may have received that are not protected as defined by the Rehabilitation of Offenders Act 1974 (Exceptions) Order 1975 (as amended in 2013 by SI 210 1198)?', margin, yPosition, pageWidth - 2 * margin, 11);
   yPosition += 3;
   pdf.setFont('helvetica', 'normal');
-  const convictionsYes = reference.form_data.convictionsKnown === 'yes' ? '☑' : '☐';
-  const convictionsNo = reference.form_data.convictionsKnown === 'no' ? '☑' : '☐';
-  pdf.text(`${convictionsYes} Yes    ${convictionsNo} No`, margin, yPosition);
+  const convictionsYesBox = reference.form_data.convictionsKnown === 'yes' ? '\u2611' : '\u2610';
+  const convictionsNoBox = reference.form_data.convictionsKnown === 'no' ? '\u2611' : '\u2610';
+  pdf.text(`${convictionsYesBox} Yes    ${convictionsNoBox} No`, margin, yPosition);
   yPosition += lineHeight + 5;
 
   pdf.setFont('helvetica', 'bold');
   yPosition = addWrappedText('To your knowledge, is this person currently the subject of any criminal proceedings (for example, charged or summoned but not yet dealt with) or any police investigation?', margin, yPosition, pageWidth - 2 * margin, 11);
   yPosition += 3;
   pdf.setFont('helvetica', 'normal');
-  const proceedingsYes = reference.form_data.criminalProceedingsKnown === 'yes' ? '☑' : '☐';
-  const proceedingsNo = reference.form_data.criminalProceedingsKnown === 'no' ? '☑' : '☐';
-  pdf.text(`${proceedingsYes} Yes    ${proceedingsNo} No`, margin, yPosition);
+  const proceedingsYesBox = reference.form_data.criminalProceedingsKnown === 'yes' ? '\u2611' : '\u2610';
+  const proceedingsNoBox = reference.form_data.criminalProceedingsKnown === 'no' ? '\u2611' : '\u2610';
+  pdf.text(`${proceedingsYesBox} Yes    ${proceedingsNoBox} No`, margin, yPosition);
   yPosition += lineHeight + 5;
 
   // Criminal details if provided
@@ -376,7 +377,7 @@ export const generateManualReferencePDF = (
   };
 
   const addCheckboxQuestion = (label: string) => {
-    pdf.text('☐', margin, y);
+    pdf.text('\u2610', margin, y);
     pdf.text(label, margin + 10, y);
     y += lineHeight;
   };
@@ -417,7 +418,7 @@ export const generateManualReferencePDF = (
     pdf.text('Are you this person\'s current or previous employer?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('☐ Current    ☐ Previous    ☐ Neither', margin, y);
+    pdf.text('\u2610 Current    \u2610 Previous    \u2610 Neither', margin, y);
     y += 12;
 
     addLabeledLine('What is your relationship to this person (e.g. "I am her/his manager")?');
@@ -433,7 +434,7 @@ export const generateManualReferencePDF = (
     pdf.text('How would you describe their recent attendance record?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('☐ Good    ☐ Average    ☐ Poor', margin, y);
+    pdf.text('\u2610 Good    \u2610 Average    \u2610 Poor', margin, y);
     y += 12;
 
     addWrappedText('Why did the person leave your employment (if they are still employed, please write \'still employed\')?');
@@ -447,7 +448,7 @@ export const generateManualReferencePDF = (
     pdf.text('Do you know this person from outside employment or education?', margin, y);
     y += 8;
     pdf.setFont('helvetica', 'normal');
-    pdf.text('☐ Yes    ☐ No', margin, y);
+    pdf.text('\u2610 Yes    \u2610 No', margin, y);
     y += 12;
 
     addWrappedText('Please describe your relationship with this person, including how long you have known them:');
@@ -493,14 +494,14 @@ export const generateManualReferencePDF = (
   addWrappedText('The position this person has applied for involves working with vulnerable people. Are you aware of any convictions, cautions, reprimands or final warnings that the person may have received that are not \'protected\' as defined by the Rehabilitation of Offenders Act 1974 (Exceptions) Order 1975 (as amended in 2013 by SI 210 1198)?');
   y += 5;
   pdf.setFont('helvetica', 'normal');
-  pdf.text('☐ Yes    ☐ No', margin, y);
+  pdf.text('\u2610 Yes    \u2610 No', margin, y);
   y += 12;
 
   pdf.setFont('helvetica', 'bold');
   addWrappedText('To your knowledge, is this person currently the subject of any criminal proceedings (for example, charged or summoned but not yet dealt with) or any police investigation?');
   y += 5;
   pdf.setFont('helvetica', 'normal');
-  pdf.text('☐ Yes    ☐ No', margin, y);
+  pdf.text('\u2610 Yes    \u2610 No', margin, y);
   y += 12;
 
   addWrappedText('If you answered \'yes\' to either of the two previous questions, please provide details:');
