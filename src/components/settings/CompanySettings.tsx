@@ -181,8 +181,12 @@ export function CompanySettings() {
         .from('company-assets')
         .getPublicUrl(fileName);
 
-      // Update form data
-      setFormData(prev => ({ ...prev, logo: publicUrl }));
+      // Update form data AND save to database immediately
+      const updatedFormData = { ...formData, logo: publicUrl };
+      setFormData(updatedFormData);
+
+      // Save to database immediately
+      await updateCompanySettings({ logo: publicUrl });
 
       // Update favicon
       updateFavicon(publicUrl);
