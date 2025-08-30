@@ -83,7 +83,7 @@ function PublicHomeContent() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="text-center">
               <div className="mx-auto mb-4 w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
-                <User className="w-6 h-6 text-secondary" />
+                <User className="w-6 h-6 text-primary" />
               </div>
               <CardTitle className="text-2xl">Employee Portal</CardTitle>
               <CardDescription>
