@@ -491,7 +491,7 @@ export const generateManualReferencePDF = (
     pdf.text('[ ] Current    [ ] Previous    [ ] Neither', margin, y);
     y += 8;
 
-    addLabeledLine('What is your relationship to this person (e.g. "I am her/his manager")?', `Manager - ${data.referee.jobTitle || ''}`);
+    addLabeledLine('What is your relationship to this person (e.g. "I am her/his manager")?', data.referee.jobTitle || '');
     y += 2;
     addLabeledLine('Please state the person\'s job title:', data.applicantPosition);
     y += 2;
