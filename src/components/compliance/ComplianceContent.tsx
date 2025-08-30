@@ -131,7 +131,12 @@ export function ComplianceContent() {
 
   const handleComplianceTypeClick = (complianceType: ComplianceType) => {
     console.log('Navigating to compliance type:', complianceType.id);
-    navigate(`/compliance/${complianceType.id}`, { state: { complianceType } });
+    // Check if this is a client compliance type
+    if (complianceType.name.toLowerCase().includes('client')) {
+      navigate(`/client-compliance/${complianceType.id}`, { state: { complianceType } });
+    } else {
+      navigate(`/compliance/${complianceType.id}`, { state: { complianceType } });
+    }
   };
 
   const handleAddType = () => {

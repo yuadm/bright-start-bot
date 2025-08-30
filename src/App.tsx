@@ -18,6 +18,7 @@ import Leaves from "./pages/Leaves";
 import Documents from "./pages/Documents";
 import Compliance from "./pages/Compliance";
 import ComplianceType from "./pages/ComplianceType";
+import ClientCompliance from "./pages/ClientCompliance";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
@@ -113,6 +114,11 @@ function AppContent() {
       <Route path="/compliance/:id" element={
         <ProtectedRoute requiredPage="/compliance">
           <ComplianceType />
+        </ProtectedRoute>
+      } />
+      <Route path="/client-compliance/:id" element={
+        <ProtectedRoute requiredPage="/compliance">
+          <ClientCompliance />
         </ProtectedRoute>
       } />
       <Route path="/reports" element={
