@@ -310,32 +310,37 @@ export function DocumentViewDialog({
             </div>
           </div>
           
-          {/* Read-only employee information */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-3 bg-muted/30 rounded-md">
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Employee</label>
-              <p className="text-sm font-medium">{employees.find(emp => emp.id === editingDoc.employee_id)?.name}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Employee</label>
+              <Select
+                value={editingDoc.employee_id}
+                onValueChange={handleEmployeeChange}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id}>
+                      {employee.name} - {employee.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Email</label>
-              <p className="text-sm">{employees.find(emp => emp.id === editingDoc.employee_id)?.email}</p>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Document Number</label>
+              <Input
+                value={editingDoc.document_number || ''}
+                onChange={(e) => setEditingDoc({
+                  ...editingDoc,
+                  document_number: e.target.value
+                })}
+                placeholder="Enter document number"
+              />
             </div>
-            <div>
-              <label className="text-sm font-medium text-muted-foreground">Branch</label>
-              <p className="text-sm">{employees.find(emp => emp.id === editingDoc.employee_id)?.branch}</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Document Number</label>
-            <Input
-              value={editingDoc.document_number || ''}
-              onChange={(e) => setEditingDoc({
-                ...editingDoc,
-                document_number: e.target.value
-              })}
-              placeholder="Enter document number"
-            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -343,19 +348,10 @@ export function DocumentViewDialog({
               <label className="text-sm font-medium">Issue Date</label>
               <DateTextPicker
                 value={editingDoc.issue_date || ''}
-                onChange={(date) => {
-                  let formattedDate = '';
-                  if (typeof date === 'string') {
-                    formattedDate = date;
-                  } else if (date) {
-                    // Format as dd/mm/yyyy
-                    formattedDate = date.toLocaleDateString('en-GB');
-                  }
-                  setEditingDoc({
-                    ...editingDoc,
-                    issue_date: formattedDate
-                  });
-                }}
+                onChange={(date) => setEditingDoc({
+                  ...editingDoc,
+                  issue_date: typeof date === 'string' ? date : (date ? date.toISOString().split('T')[0] : '')
+                })}
               />
             </div>
             
@@ -363,26 +359,14 @@ export function DocumentViewDialog({
               <label className="text-sm font-medium">Expiry Date *</label>
               <DateTextPicker
                 value={editingDoc.expiry_date}
-                onChange={(date) => {
-                  let formattedDate = '';
-                  if (typeof date === 'string') {
-                    formattedDate = date;
-                  } else if (date) {
-                    // Format as dd/mm/yyyy
-                    formattedDate = date.toLocaleDateString('en-GB');
-                  } else {
-                    formattedDate = editingDoc.expiry_date;
-                  }
-                  setEditingDoc({
-                    ...editingDoc,
-                    expiry_date: formattedDate
-                  });
-                }}
+                onChange={(date) => setEditingDoc({
+                  ...editingDoc,
+                  expiry_date: typeof date === 'string' ? date : (date ? date.toISOString().split('T')[0] : editingDoc.expiry_date)
+                })}
               />
             </div>
           </div>
 
-          {/* Country and Nationality Status side by side */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Country</label>
@@ -439,17 +423,16 @@ export function DocumentViewDialog({
             />
           </div>
 
-          {/* Sponsored Employee and 20 Hours Restriction side by side */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                id={`sponsored-${editingDoc.id}`}
+                id={`sponsored-${doc.id}`}
                 checked={sponsored}
                 onChange={(e) => setSponsored(e.target.checked)}
                 className="rounded"
               />
-              <label htmlFor={`sponsored-${editingDoc.id}`} className="text-sm font-medium">
+              <label htmlFor={`sponsored-${doc.id}`} className="text-sm font-medium">
                 Sponsored Employee
               </label>
             </div>
@@ -457,12 +440,12 @@ export function DocumentViewDialog({
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
-                id={`twenty-hours-${editingDoc.id}`}
+                id={`twenty-hours-${doc.id}`}
                 checked={twentyHours}
                 onChange={(e) => setTwentyHours(e.target.checked)}
                 className="rounded"
               />
-              <label htmlFor={`twenty-hours-${editingDoc.id}`} className="text-sm font-medium">
+              <label htmlFor={`twenty-hours-${doc.id}`} className="text-sm font-medium">
                 20 Hours Restriction
               </label>
             </div>
