@@ -51,6 +51,7 @@ export function ClientCompliancePeriodView({
   const [spotCheckDialogOpen, setSpotCheckDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<"status" | "periods">("status");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -380,71 +381,30 @@ export function ClientCompliancePeriodView({
 
   return (
     <div className="space-y-6">
-      {/* Period Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h3 className="text-xl font-semibold">Client Compliance Records</h3>
-        
-        {frequency.toLowerCase() !== 'annual' && (
-          <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Select Year" />
-            </SelectTrigger>
-            <SelectContent>
-              {getAvailableYears().map((year) => (
-                <SelectItem key={year} value={year.toString()}>
-                  {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+      {/* Navigation Tabs */}
+      <div className="flex gap-2 border-b">
+        <Button 
+          variant={activeTab === "status" ? "default" : "ghost"} 
+          size="sm"
+          onClick={() => setActiveTab("status")}
+          className={activeTab === "status" ? "border-b-2 border-primary" : ""}
+        >
+          <Users className="w-4 h-4 mr-2" />
+          Client Compliance Status
+        </Button>
+        <Button 
+          variant={activeTab === "periods" ? "default" : "ghost"} 
+          size="sm"
+          onClick={() => setActiveTab("periods")}
+          className={activeTab === "periods" ? "border-b-2 border-primary" : ""}
+        >
+          <Calendar className="w-4 h-4 mr-2" />
+          Period Records
+        </Button>
       </div>
 
-      {/* Periods Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {periods.map((period, index) => (
-          <Card 
-            key={period.period_identifier} 
-            className={`card-premium transition-all duration-300 cursor-pointer ${
-              period.is_current ? 'ring-2 ring-primary border-primary bg-primary/5' : ''
-            } ${selectedPeriod === period.period_identifier ? 'ring-2 ring-secondary border-secondary' : ''}`}
-            style={{ animationDelay: `${index * 50}ms` }}
-            onClick={() => setSelectedPeriod(period.period_identifier)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="w-5 h-5" />
-                  {getPeriodLabel(period.period_identifier)}
-                </CardTitle>
-                {period.is_current && (
-                  <Badge className="bg-primary/10 text-primary border-primary/20">
-                    Current
-                  </Badge>
-                )}
-              </div>
-            </CardHeader>
-            
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Records</p>
-                  <p className="font-semibold">{period.record_count}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Completion</p>
-                  <Badge className={getCompletionBadge(period.completion_rate)}>
-                    {period.completion_rate.toFixed(1)}%
-                  </Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Client Compliance Status Table */}
-      {selectedPeriod && (
+      {/* Client Compliance Status Tab */}
+      {activeTab === "status" && selectedPeriod && (
         <div className="space-y-6">
           <div className="flex flex-col space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -461,23 +421,15 @@ export function ClientCompliancePeriodView({
                       <Users className="w-5 h-5" />
                       <span className="font-medium">Client Compliance Status</span>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-muted-foreground">
-                        Client Compliance Status
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-primary">
-                        Period Records
-                      </Button>
-                    </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
                     <Filter className="w-4 h-4 text-muted-foreground" />
                     <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                      <SelectTrigger className="w-40">
+                      <SelectTrigger className="w-40 bg-background border border-input">
                         <SelectValue placeholder="All Branches" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border shadow-lg z-50">
                         <SelectItem value="all">All Branches</SelectItem>
                         {getUniqueBranches().map((branch) => (
                           <SelectItem key={branch.id} value={branch.id}>
@@ -581,6 +533,123 @@ export function ClientCompliancePeriodView({
               </CardContent>
             </Card>
           </div>
+        </div>
+      )}
+
+      {/* Period Records Tab */}
+      {activeTab === "periods" && (
+        <div className="space-y-6">
+          {/* Period Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h3 className="text-xl font-semibold">Client Compliance Records</h3>
+            
+            {frequency.toLowerCase() !== 'annual' && (
+              <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                <SelectTrigger className="w-40 bg-background border border-input">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  {getAvailableYears().map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          {/* Periods Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {periods.map((period, index) => (
+              <Card 
+                key={period.period_identifier} 
+                className={`card-premium transition-all duration-300 cursor-pointer hover:shadow-lg ${
+                  period.is_current ? 'ring-2 ring-primary border-primary bg-primary/5' : ''
+                } ${selectedPeriod === period.period_identifier ? 'ring-2 ring-secondary border-secondary' : ''}`}
+                style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => {
+                  setSelectedPeriod(period.period_identifier);
+                  setActiveTab("status");
+                }}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5" />
+                      {getPeriodLabel(period.period_identifier)}
+                    </CardTitle>
+                    {period.is_current && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
+                        Current
+                      </Badge>
+                    )}
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Records</p>
+                      <p className="font-semibold text-lg">{period.record_count}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Completion</p>
+                      <Badge className={getCompletionBadge(period.completion_rate)}>
+                        {period.completion_rate.toFixed(1)}%
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Archive Warning */}
+                  {period.archive_due_date && (
+                    <div className="flex items-center gap-2 p-2 bg-warning/10 rounded-lg">
+                      <AlertTriangle className="w-4 h-4 text-warning" />
+                      <span className="text-sm text-warning">
+                        Archive due: {new Date(period.archive_due_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Download Button */}
+                  {period.download_available && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Handle download
+                      }}
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Archive
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Legend */}
+          <Card className="card-premium">
+            <CardContent className="p-4">
+              <div className="flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-primary rounded-full"></div>
+                  <span>Current Period</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Download className="w-4 h-4 text-muted-foreground" />
+                  <span>Download Available (3 months before deletion)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-warning" />
+                  <span>Archive Due</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
