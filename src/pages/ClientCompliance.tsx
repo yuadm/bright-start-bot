@@ -50,6 +50,7 @@ export default function ClientCompliance() {
   const [branchStats, setBranchStats] = useState<BranchStats[]>([]);
   const [currentPeriod, setCurrentPeriod] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   
   const complianceType = location.state?.complianceType as ComplianceType;
 
@@ -270,7 +271,12 @@ export default function ClientCompliance() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-success/5 border-success/20">
+          <Card 
+            className={`bg-success/5 border-success/20 cursor-pointer transition-all hover:bg-success/10 ${
+              selectedFilter === 'completed' ? 'ring-2 ring-success' : ''
+            }`}
+            onClick={() => setSelectedFilter(selectedFilter === 'completed' ? null : 'completed')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-success/10">
@@ -284,7 +290,12 @@ export default function ClientCompliance() {
             </CardContent>
           </Card>
 
-          <Card className="bg-warning/5 border-warning/20">
+          <Card 
+            className={`bg-warning/5 border-warning/20 cursor-pointer transition-all hover:bg-warning/10 ${
+              selectedFilter === 'due' ? 'ring-2 ring-warning' : ''
+            }`}
+            onClick={() => setSelectedFilter(selectedFilter === 'due' ? null : 'due')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-warning/10">
@@ -298,7 +309,12 @@ export default function ClientCompliance() {
             </CardContent>
           </Card>
 
-          <Card className="bg-destructive/5 border-destructive/20">
+          <Card 
+            className={`bg-destructive/5 border-destructive/20 cursor-pointer transition-all hover:bg-destructive/10 ${
+              selectedFilter === 'overdue' ? 'ring-2 ring-destructive' : ''
+            }`}
+            onClick={() => setSelectedFilter(selectedFilter === 'overdue' ? null : 'overdue')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-destructive/10">
@@ -312,7 +328,12 @@ export default function ClientCompliance() {
             </CardContent>
           </Card>
 
-          <Card className="bg-muted/5 border-muted/20">
+          <Card 
+            className={`bg-muted/5 border-muted/20 cursor-pointer transition-all hover:bg-muted/10 ${
+              selectedFilter === 'pending' ? 'ring-2 ring-muted' : ''
+            }`}
+            onClick={() => setSelectedFilter(selectedFilter === 'pending' ? null : 'pending')}
+          >
             <CardContent className="p-6">
               <div className="flex items-center gap-4">
                 <div className="p-3 rounded-full bg-muted/10">
@@ -332,6 +353,7 @@ export default function ClientCompliance() {
           complianceTypeId={id}
           complianceTypeName={complianceType.name}
           frequency={complianceType.frequency}
+          selectedFilter={selectedFilter}
         />
       </div>
     </MainLayout>
