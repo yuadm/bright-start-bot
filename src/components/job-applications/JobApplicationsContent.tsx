@@ -314,11 +314,7 @@ Please complete and return this reference as soon as possible.`;
           <Input
             placeholder="Search by name, email, or position..."
             value={searchTerm}
-            onChange={(e) => {
-              e.preventDefault();
-              setPage(1);
-              setSearchTerm(e.target.value);
-            }}
+            onChange={(e) => { setPage(1); setSearchTerm(e.target.value); }}
             className="pl-10"
           />
         </div>
