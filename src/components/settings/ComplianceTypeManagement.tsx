@@ -20,7 +20,6 @@ interface ComplianceType {
   has_questionnaire: boolean;
   created_at: string;
   updated_at: string;
-  source?: 'employees' | 'clients';
 }
 
 const FREQUENCY_OPTIONS = [
@@ -66,8 +65,7 @@ export function ComplianceTypeManagement() {
     name: "",
     description: "",
     frequency: "",
-    has_questionnaire: false,
-    useFor: "employees" as "employees" | "clients"
+    has_questionnaire: false
   });
   const { toast } = useToast();
 
@@ -78,29 +76,23 @@ export function ComplianceTypeManagement() {
   const fetchComplianceTypes = async () => {
     try {
       console.log('Fetching compliance types in management...');
-      
-      // Fetch from both employee and client compliance types tables
-      const [employeeTypesResponse, clientTypesResponse] = await Promise.all([
-        supabase.from('compliance_types').select('*').order('name'),
-        supabase.from('client_compliance_types').select('*').order('name')
-      ]);
+      const { data, error } = await supabase
+        .from('compliance_types')
+        .select('*')
+        .order('name');
 
-      if (employeeTypesResponse.error) {
-        console.error('Error fetching employee compliance types:', employeeTypesResponse.error);
+      if (error) {
+        console.error('Error fetching compliance types:', error);
+        toast({
+          title: "Error",
+          description: `Failed to fetch compliance types: ${error.message}`,
+          variant: "destructive",
+        });
+        return;
       }
 
-      if (clientTypesResponse.error) {
-        console.error('Error fetching client compliance types:', clientTypesResponse.error);
-      }
-
-      // Merge and deduplicate by name, mark source table
-      const employeeTypes = (employeeTypesResponse.data || []).map(type => ({ ...type, source: 'employees' as const }));
-      const clientTypes = (clientTypesResponse.data || []).map(type => ({ ...type, source: 'clients' as const }));
-      
-      const allTypes = [...employeeTypes, ...clientTypes];
-      
-      console.log('Compliance types fetched in management:', allTypes);
-      setComplianceTypes(allTypes);
+      console.log('Compliance types fetched in management:', data);
+      setComplianceTypes(data || []);
     } catch (error) {
       console.error('Error fetching compliance types:', error);
       toast({
@@ -118,9 +110,8 @@ export function ComplianceTypeManagement() {
 
     try {
       console.log('Adding compliance type:', newComplianceType);
-      const tableName = newComplianceType.useFor === "employees" ? "compliance_types" : "client_compliance_types";
       const { data, error } = await supabase
-        .from(tableName)
+        .from('compliance_types')
         .insert([{
           name: newComplianceType.name,
           description: newComplianceType.description || null,
@@ -141,8 +132,8 @@ export function ComplianceTypeManagement() {
       }
 
       console.log('Compliance type added successfully:', data);
-      setComplianceTypes([...complianceTypes, { ...data, source: newComplianceType.useFor }]);
-      setNewComplianceType({ name: "", description: "", frequency: "", has_questionnaire: false, useFor: "employees" });
+      setComplianceTypes([...complianceTypes, data]);
+      setNewComplianceType({ name: "", description: "", frequency: "", has_questionnaire: false });
       setIsAddDialogOpen(false);
       
       // Notify compliance page of the change
@@ -167,9 +158,8 @@ export function ComplianceTypeManagement() {
 
     try {
       console.log('Updating compliance type:', editingComplianceType);
-      const tableName = editingComplianceType.source === 'clients' ? 'client_compliance_types' : 'compliance_types';
       const { error } = await supabase
-        .from(tableName)
+        .from('compliance_types')
         .update({
           name: editingComplianceType.name,
           description: editingComplianceType.description || null,
@@ -222,9 +212,8 @@ export function ComplianceTypeManagement() {
 
     try {
       console.log('Deleting compliance type:', complianceTypeToDelete);
-      const tableName = complianceTypeToDelete.source === 'clients' ? 'client_compliance_types' : 'compliance_types';
       const { error } = await supabase
-        .from(tableName)
+        .from('compliance_types')
         .delete()
         .eq('id', complianceTypeToDelete.id);
 
@@ -282,15 +271,6 @@ export function ComplianceTypeManagement() {
               <div key={complianceType.id} className="p-4 border rounded-lg space-y-2">
                 <div className="flex items-center justify-between">
                   <h5 className="font-medium">{complianceType.name}</h5>
-                  {complianceType.source && (
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      complianceType.source === 'employees' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-purple-100 text-purple-800'
-                    }`}>
-                      {complianceType.source === 'employees' ? 'Employees' : 'Clients'}
-                    </span>
-                  )}
                 </div>
                 {complianceType.description && (
                   <p className="text-sm text-muted-foreground">{complianceType.description}</p>
@@ -382,25 +362,6 @@ export function ComplianceTypeManagement() {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="compliance-type-usefor">Use For</Label>
-              <Select 
-                value={newComplianceType.useFor} 
-                onValueChange={(value: "employees" | "clients") => setNewComplianceType(prev => ({ ...prev, useFor: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select target" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="employees">Employees</SelectItem>
-                  <SelectItem value="clients">Clients</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-sm text-muted-foreground">
-                Choose whether this compliance type will be used for employees or clients.
-              </p>
-            </div>
             
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
@@ -422,7 +383,7 @@ export function ComplianceTypeManagement() {
               </Button>
               <Button 
                 onClick={handleAddComplianceType} 
-                disabled={!newComplianceType.name.trim() || !newComplianceType.frequency || !newComplianceType.useFor}
+                disabled={!newComplianceType.name.trim() || !newComplianceType.frequency}
                 className="bg-gradient-primary hover:opacity-90"
               >
                 Add Compliance Type
