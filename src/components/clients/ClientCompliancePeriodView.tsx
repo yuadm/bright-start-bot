@@ -478,6 +478,146 @@ export function ClientCompliancePeriodView({
         <TabsContent value="status" className="space-y-6">
           {selectedPeriod && (
             <div className="space-y-6">
+              {/* Compliance Requirements Card - matching employee style */}
+              <Card className="card-premium">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-primary" />
+                    Compliance Requirements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Frequency</p>
+                      <Badge variant="default" className="w-fit">
+                        {frequency}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Current Period</p>
+                      <div className="flex items-center gap-2 text-sm font-medium">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        {getPeriodLabel(selectedPeriod)}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Client Compliance</p>
+                      <div className="text-2xl font-bold text-foreground">
+                        {records.filter(r => 
+                          r.period_identifier === selectedPeriod && 
+                          r.status === 'completed'
+                        ).length}/{clients.length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {clients.length > 0 
+                          ? `${Math.round((records.filter(r => 
+                              r.period_identifier === selectedPeriod && 
+                              r.status === 'completed'
+                            ).length / clients.length) * 100)}% compliant`
+                          : '0% compliant'
+                        }
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Branch Completion</p>
+                      <div className="space-y-2">
+                        {getUniqueBranches().map(branch => {
+                          const branchClients = clients.filter(c => 
+                            (c.branch_id || 'unassigned') === branch.id
+                          );
+                          const branchCompleted = branchClients.filter(c => {
+                            const record = getClientRecordForPeriod(c.id, selectedPeriod);
+                            return record?.status === 'completed';
+                          }).length;
+                          const branchRate = branchClients.length > 0 
+                            ? Math.round((branchCompleted / branchClients.length) * 100) 
+                            : 0;
+                          
+                          return (
+                            <div key={branch.id} className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{branch.name}</span>
+                              <span className="font-medium">{branchRate}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Status Cards - matching employee style */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {(() => {
+                  const completedCount = records.filter(r => 
+                    r.period_identifier === selectedPeriod && 
+                    r.status === 'completed'
+                  ).length;
+                  const overdueCount = records.filter(r => 
+                    r.period_identifier === selectedPeriod && 
+                    r.status === 'overdue'
+                  ).length;
+                  const pendingCount = clients.length - completedCount - overdueCount;
+                  const dueCount = clients.length - completedCount;
+                  
+                  return (
+                    <>
+                      <Card className="card-premium bg-gradient-to-br from-success/10 to-success/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-success/80">Compliant</p>
+                              <p className="text-2xl font-bold text-success">{completedCount}</p>
+                            </div>
+                            <CheckCircle className="w-8 h-8 text-success" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="card-premium bg-gradient-to-br from-warning/10 to-warning/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-warning/80">Due</p>
+                              <p className="text-2xl font-bold text-warning">{dueCount}</p>
+                            </div>
+                            <Clock className="w-8 h-8 text-warning" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="card-premium bg-gradient-to-br from-destructive/10 to-destructive/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-destructive/80">Overdue</p>
+                              <p className="text-2xl font-bold text-destructive">{overdueCount}</p>
+                            </div>
+                            <AlertTriangle className="w-8 h-8 text-destructive" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="card-premium bg-gradient-to-br from-muted/10 to-muted/5">
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                              <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+                            </div>
+                            <Users className="w-8 h-8 text-muted-foreground" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </>
+                  );
+                })()}
+              </div>
+
               <div className="flex flex-col space-y-4">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="space-y-1">
