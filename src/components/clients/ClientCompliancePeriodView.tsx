@@ -7,9 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCompany } from "@/contexts/CompanyContext";
 import ClientSpotCheckFormDialog, { ClientSpotCheckFormData } from "./ClientSpotCheckFormDialog";
+import ClientSpotCheckViewDialog from "./ClientSpotCheckViewDialog";
+import { downloadClientSpotCheckPDF } from "@/lib/client-spot-check-pdf";
 
 interface ClientCompliancePeriodViewProps {
   complianceTypeId: string;
@@ -51,13 +55,18 @@ export function ClientCompliancePeriodView({
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [spotCheckDialogOpen, setSpotCheckDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
+  const [editingRecord, setEditingRecord] = useState<any>(null);
   const [selectedBranch, setSelectedBranch] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"status" | "periods">("status");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<'name' | 'branch' | 'status' | 'completion_date'>('name');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { toast } = useToast();
+  const { companySettings } = useCompany();
 
   useEffect(() => {
     fetchData();
