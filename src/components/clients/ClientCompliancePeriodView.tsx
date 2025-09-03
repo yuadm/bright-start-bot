@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ClientSpotCheckFormDialog, { ClientSpotCheckFormData } from "./ClientSpotCheckFormDialog";
-import { ClientCompliancePeriodClientView } from "./ClientCompliancePeriodClientView";
 
 interface ClientCompliancePeriodViewProps {
   complianceTypeId: string;

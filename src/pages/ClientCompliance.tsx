@@ -216,9 +216,7 @@ export default function ClientCompliance() {
           
           <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
-                <Shield className="w-6 h-6 text-primary" />
-              </div>
+              <Shield className="w-6 h-6 text-primary" />
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
                   {complianceType.name}
