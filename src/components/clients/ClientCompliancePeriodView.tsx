@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ClientSpotCheckFormDialog, { ClientSpotCheckFormData } from "./ClientSpotCheckFormDialog";
-import { generateSpotCheckPdf } from "@/lib/spot-check-pdf";
+import { generateClientSpotCheckPdf } from "@/lib/client-spot-check-pdf";
 import { useCompany } from "@/contexts/CompanyContext";
 
 interface ClientCompliancePeriodViewProps {
@@ -340,20 +340,18 @@ export function ClientCompliancePeriodView({
         if (record.client_spot_check_records && record.client_spot_check_records.length > 0) {
           const spotCheckRecord = record.client_spot_check_records[0];
           
-          // Transform the data to match the PDF format - use safe property access
+          // Transform the data to match the client PDF format
           const pdfData = {
             serviceUserName: (spotCheckRecord as any)?.service_user_name || record.clients?.name || 'Unknown',
-            careWorker1: ((spotCheckRecord as any)?.care_workers || '').toString().split(',')[0]?.trim() || 'Not specified',
-            careWorker2: ((spotCheckRecord as any)?.care_workers || '').toString().split(',')[1]?.trim() || '',
+            careWorkers: ((spotCheckRecord as any)?.care_workers || '').toString() || 'Not specified',
             date: (spotCheckRecord as any)?.date || record.completion_date || '',
-            timeFrom: ((spotCheckRecord as any)?.time || '').toString().split('-')[0]?.trim() || 'Not specified',
-            timeTo: ((spotCheckRecord as any)?.time || '').toString().split('-')[1]?.trim() || '',
-            carriedBy: (spotCheckRecord as any)?.performed_by || 'Not specified',
+            time: ((spotCheckRecord as any)?.time || '').toString() || 'Not specified',
+            performedBy: (spotCheckRecord as any)?.performed_by || 'Not specified',
             observations: Array.isArray((spotCheckRecord as any)?.observations) ? (spotCheckRecord as any).observations : []
           };
 
-          // Generate PDF
-          await generateSpotCheckPdf(pdfData, {
+          // Generate PDF using client-specific generator
+          await generateClientSpotCheckPdf(pdfData, {
             name: companySettings?.name,
             logo: companySettings?.logo
           });
@@ -752,23 +750,21 @@ export function ClientCompliancePeriodView({
                                                 return;
                                               }
                                               
-                                              // Transform data for PDF generation
-                                              const pdfData = {
-                                                serviceUserName: spotCheckData.service_user_name || client.name || 'Unknown',
-                                                careWorker1: (spotCheckData.care_workers || '').toString().split(',')[0]?.trim() || 'Not specified',
-                                                careWorker2: (spotCheckData.care_workers || '').toString().split(',')[1]?.trim() || '',
-                                                date: spotCheckData.date || record.completion_date || '',
-                                                timeFrom: (spotCheckData.time || '').toString().split('-')[0]?.trim() || 'Not specified',
-                                                timeTo: (spotCheckData.time || '').toString().split('-')[1]?.trim() || '',
-                                                carriedBy: spotCheckData.performed_by || 'Not specified',
-                                                observations: Array.isArray(spotCheckData.observations) ? spotCheckData.observations as any[] : []
-                                              };
-                                              
-                                              // Generate PDF
-                                              await generateSpotCheckPdf(pdfData, {
-                                                name: companySettings?.name,
-                                                logo: companySettings?.logo
-                                              });
+                                               // Transform data for PDF generation
+                                               const pdfData = {
+                                                 serviceUserName: spotCheckData.service_user_name || client.name || 'Unknown',
+                                                 careWorkers: (spotCheckData.care_workers || '').toString() || 'Not specified',
+                                                 date: spotCheckData.date || record.completion_date || '',
+                                                 time: (spotCheckData.time || '').toString() || 'Not specified',
+                                                 performedBy: spotCheckData.performed_by || 'Not specified',
+                                                 observations: Array.isArray(spotCheckData.observations) ? spotCheckData.observations as any[] : []
+                                               };
+                                               
+                                               // Generate PDF using client-specific generator
+                                               await generateClientSpotCheckPdf(pdfData, {
+                                                 name: companySettings?.name,
+                                                 logo: companySettings?.logo
+                                               });
                                               
                                               toast({
                                                 title: "PDF Downloaded",
