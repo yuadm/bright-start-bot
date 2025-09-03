@@ -194,29 +194,27 @@ export function ClientCompliancePeriodView({
     if (!selectedClient || !selectedPeriod) return;
 
     try {
-      // First, create or update the compliance period record
-      const { data: existingRecord } = await supabase
+      // Create or update the compliance period record without a pre-fetch to avoid 406/409
+      const { data: updated, error: updateError } = await supabase
         .from('client_compliance_period_records')
-        .select('id')
+        .update({
+          status: 'completed',
+          completion_date: data.date,
+          completion_method: 'spotcheck'
+        })
         .eq('client_compliance_type_id', complianceTypeId)
         .eq('client_id', selectedClient.id)
         .eq('period_identifier', selectedPeriod)
-        .single();
+        .select('id');
 
-      let complianceRecordId;
+      if (updateError) throw updateError;
 
-      if (existingRecord) {
-        complianceRecordId = existingRecord.id;
-        await supabase
-          .from('client_compliance_period_records')
-          .update({
-            status: 'completed',
-            completion_date: data.date,
-            completion_method: 'spotcheck'
-          })
-          .eq('id', complianceRecordId);
+      let complianceRecordId: string;
+
+      if (updated && updated.length > 0) {
+        complianceRecordId = updated[0].id;
       } else {
-        const { data: newRecord, error: recordError } = await supabase
+        const { data: inserted, error: insertError } = await supabase
           .from('client_compliance_period_records')
           .insert({
             client_compliance_type_id: complianceTypeId,
@@ -227,10 +225,11 @@ export function ClientCompliancePeriodView({
             completion_method: 'spotcheck'
           })
           .select('id')
-          .single();
+          .maybeSingle();
 
-        if (recordError) throw recordError;
-        complianceRecordId = newRecord.id;
+        if (insertError) throw insertError;
+        if (!inserted) throw new Error('Failed to create compliance record');
+        complianceRecordId = inserted.id;
       }
 
       // Save the spot check record
