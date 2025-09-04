@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Calendar, Users, CheckCircle, AlertTriangle, Clock, Eye, Download } from "lucide-react";
+import { Calendar, Users, CheckCircle, AlertTriangle, Clock, Eye, Download, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +69,7 @@ export function CompliancePeriodEmployeeView({
   const [employeeStatusList, setEmployeeStatusList] = useState<EmployeeComplianceStatus[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const { companySettings } = useCompany();
 
@@ -207,10 +209,16 @@ export function CompliancePeriodEmployeeView({
   };
 
   // Calculate stats for this period
-  const compliantCount = employeeStatusList.filter(item => item.status === 'compliant').length;
-  const overdueCount = employeeStatusList.filter(item => item.status === 'overdue').length;
-  const dueCount = employeeStatusList.filter(item => item.status === 'due').length;
-  const pendingCount = employeeStatusList.filter(item => item.status === 'pending').length;
+  const filteredEmployeeStatusList = employeeStatusList.filter(item => {
+    if (!searchTerm.trim()) return true;
+    return item.employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           item.employee.branch.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  const compliantCount = filteredEmployeeStatusList.filter(item => item.status === 'compliant').length;
+  const overdueCount = filteredEmployeeStatusList.filter(item => item.status === 'overdue').length;
+  const dueCount = filteredEmployeeStatusList.filter(item => item.status === 'due').length;
+  const pendingCount = filteredEmployeeStatusList.filter(item => item.status === 'pending').length;
 
   useEffect(() => {
     fetchData();
@@ -298,10 +306,23 @@ export function CompliancePeriodEmployeeView({
             {/* Employee Table */}
             <Card className="card-premium">
               <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Users className="w-6 h-6" />
-                  Employee Status ({employees.length} total)
-                </CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="flex items-center gap-3">
+                    <Users className="w-6 h-6" />
+                    Employee Status ({employees.length} total)
+                  </CardTitle>
+                  
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search employees..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 w-64 bg-background border-border/50 focus:border-primary/50"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="p-0">
                 <Table>
@@ -315,7 +336,7 @@ export function CompliancePeriodEmployeeView({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {employeeStatusList.map((item) => (
+                    {filteredEmployeeStatusList.map((item) => (
                       <TableRow key={item.employee.id} className={getStatusColor(item.status)}>
                         <TableCell className="font-medium">
                           {item.employee.name}
@@ -440,7 +461,14 @@ export function CompliancePeriodEmployeeView({
                           </div>
                         </TableCell>
                       </TableRow>
-                    ))}
+                      ))}
+                      {filteredEmployeeStatusList.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                            {searchTerm.trim() ? "No employees found matching search criteria" : "No employees found"}
+                          </TableCell>
+                        </TableRow>
+                      )}
                   </TableBody>
                 </Table>
               </CardContent>
