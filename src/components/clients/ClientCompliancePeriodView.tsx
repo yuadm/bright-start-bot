@@ -86,6 +86,7 @@ export function ClientCompliancePeriodView({
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSpotCheckRecord, setSelectedSpotCheckRecord] = useState<any>(null);
+  const [editingSpotCheckData, setEditingSpotCheckData] = useState<any>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const { companySettings } = useCompany();
@@ -296,12 +297,67 @@ export function ClientCompliancePeriodView({
 
       setSpotCheckDialogOpen(false);
       setSelectedClient(null);
+      setEditingSpotCheckData(null);
       fetchData();
     } catch (error) {
       console.error('Error saving spot check:', error);
       toast({
         title: "Error saving spot check",
         description: "Could not save the spot check. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleEditSpotCheck = async (client: Client) => {
+    try {
+      // First, fetch the compliance record for this client and period
+      const { data: complianceRecord, error: complianceError } = await supabase
+        .from('client_compliance_period_records')
+        .select('*')
+        .eq('client_compliance_type_id', complianceTypeId)
+        .eq('client_id', client.id)
+        .eq('period_identifier', selectedPeriod)
+        .maybeSingle();
+
+      if (complianceError) throw complianceError;
+
+      if (!complianceRecord) {
+        setEditingSpotCheckData(null);
+        setSelectedClient(client);
+        setSpotCheckDialogOpen(true);
+        return;
+      }
+
+      // Now fetch the existing spot check record for this compliance record
+      const { data: spotCheckRecord, error } = await supabase
+        .from('client_spot_check_records')
+        .select('*')
+        .eq('compliance_record_id', complianceRecord.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (spotCheckRecord) {
+        // Transform the database record to match the form data structure
+        const formData = {
+          serviceUserName: spotCheckRecord.service_user_name || '',
+          date: spotCheckRecord.date || '',
+          completedBy: spotCheckRecord.performed_by || '',
+          observations: spotCheckRecord.observations || []
+        };
+        setEditingSpotCheckData(formData);
+      } else {
+        setEditingSpotCheckData(null);
+      }
+
+      setSelectedClient(client);
+      setSpotCheckDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching spot check data:', error);
+      toast({
+        title: "Error loading data",
+        description: "Could not load existing spot check data.",
         variant: "destructive",
       });
     }
@@ -839,17 +895,16 @@ export function ClientCompliancePeriodView({
                                         >
                                           <Eye className="w-4 h-4" />
                                         </Button>
-                                       <Button 
-                                         variant="ghost" 
-                                         size="sm" 
-                                         className="h-8 w-8 p-0"
-                                         onClick={() => {
-                                           setSelectedClient(client);
-                                           setSpotCheckDialogOpen(true);
-                                         }}
-                                       >
-                                         <Edit className="w-4 h-4" />
-                                       </Button>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="h-8 w-8 p-0"
+                                          onClick={() => {
+                                            handleEditSpotCheck(client);
+                                          }}
+                                        >
+                                          <Edit className="w-4 h-4" />
+                                        </Button>
                                         <Button 
                                           variant="ghost" 
                                           size="sm" 
@@ -1016,8 +1071,15 @@ export function ClientCompliancePeriodView({
       {/* Spot Check Dialog */}
       <ClientSpotCheckFormDialog
         open={spotCheckDialogOpen}
-        onOpenChange={setSpotCheckDialogOpen}
+        onOpenChange={(open) => {
+          setSpotCheckDialogOpen(open);
+          if (!open) {
+            setEditingSpotCheckData(null);
+            setSelectedClient(null);
+          }
+        }}
         onSubmit={handleSpotCheckSubmit}
+        initialData={editingSpotCheckData}
         periodIdentifier={selectedPeriod}
         frequency={frequency}
       />
