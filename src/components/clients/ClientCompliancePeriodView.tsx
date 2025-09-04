@@ -440,6 +440,18 @@ export function ClientCompliancePeriodView({
     }
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-success/5 border-success/20';
+      case 'overdue':
+        return 'bg-destructive/5 border-destructive/20';
+      case 'pending':
+      default:
+        return 'bg-warning/5 border-warning/20';
+    }
+  };
+
   // Filtered and sorted clients
   const filteredAndSortedClients = useMemo(() => {
     let filtered = clients;
@@ -698,8 +710,8 @@ export function ClientCompliancePeriodView({
                           const status = record?.status || 'pending';
                           const isCompleted = status === 'completed';
                       
-                           return (
-                             <TableRow key={client.id} className="group hover:bg-gradient-to-r hover:from-muted/20 hover:to-transparent transition-all duration-200 border-b border-border/50">
+                            return (
+                              <TableRow key={client.id} className={`group hover:bg-gradient-to-r hover:from-muted/20 hover:to-transparent transition-all duration-200 border-b border-border/50 ${getStatusColor(status)}`}>
                                <TableCell className="font-semibold text-foreground">{client.name}</TableCell>
                                <TableCell className="text-muted-foreground">{client.branches?.name || 'Unassigned'}</TableCell>
                                <TableCell>
