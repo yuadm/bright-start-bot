@@ -274,10 +274,10 @@ export function ClientCompliancePeriodView({
           client_id: selectedClient.id,
           compliance_record_id: complianceRecordId,
           service_user_name: data.serviceUserName,
-          care_workers: data.careWorkers,
+          care_workers: '', // Remove from form but keep for database compatibility
           date: data.date,
-          time: data.time,
-          performed_by: data.performedBy,
+          time: '', // Remove from form but keep for database compatibility  
+          performed_by: data.completedBy, // Use completedBy value for performed_by field
           observations: data.observations as any
         });
 
@@ -343,10 +343,8 @@ export function ClientCompliancePeriodView({
           // Transform the data to match the client PDF format
           const pdfData = {
             serviceUserName: (spotCheckRecord as any)?.service_user_name || record.clients?.name || 'Unknown',
-            careWorkers: ((spotCheckRecord as any)?.care_workers || '').toString() || 'Not specified',
             date: (spotCheckRecord as any)?.date || record.completion_date || '',
-            time: ((spotCheckRecord as any)?.time || '').toString() || 'Not specified',
-            performedBy: (spotCheckRecord as any)?.performed_by || 'Not specified',
+            completedBy: (spotCheckRecord as any)?.performed_by || 'Not specified',
             observations: Array.isArray((spotCheckRecord as any)?.observations) ? (spotCheckRecord as any).observations : []
           };
 
@@ -751,14 +749,12 @@ export function ClientCompliancePeriodView({
                                               }
                                               
                                                // Transform data for PDF generation
-                                               const pdfData = {
-                                                 serviceUserName: spotCheckData.service_user_name || client.name || 'Unknown',
-                                                 careWorkers: (spotCheckData.care_workers || '').toString() || 'Not specified',
-                                                 date: spotCheckData.date || record.completion_date || '',
-                                                 time: (spotCheckData.time || '').toString() || 'Not specified',
-                                                 performedBy: spotCheckData.performed_by || 'Not specified',
-                                                 observations: Array.isArray(spotCheckData.observations) ? spotCheckData.observations as any[] : []
-                                               };
+                                                const pdfData = {
+                                                  serviceUserName: spotCheckData.service_user_name || client.name || 'Unknown',
+                                                  date: spotCheckData.date || record.completion_date || '',
+                                                  completedBy: spotCheckData.performed_by || 'Not specified',
+                                                  observations: Array.isArray(spotCheckData.observations) ? spotCheckData.observations as any[] : []
+                                                };
                                                
                                                // Generate PDF using client-specific generator
                                                await generateClientSpotCheckPdf(pdfData, {
