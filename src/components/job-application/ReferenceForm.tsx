@@ -87,7 +87,7 @@ export function ReferenceForm({ token }: ReferenceFormProps) {
         .from('reference_requests')
         .select('*')
         .eq('token', token)
-        .single();
+        .maybeSingle();
 
       if (refError) {
         console.error('Reference request error:', refError);
