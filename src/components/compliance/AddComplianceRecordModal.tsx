@@ -429,40 +429,65 @@ const [selectedPeriod, setSelectedPeriod] = useState(periodIdentifier || getCurr
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>Record Type</Label>
-            <Select
-              value={recordType}
-            onValueChange={(value: 'date' | 'new' | 'spotcheck' | 'supervision' | 'annualappraisal') => {
-              setRecordType(value);
-              if (value === 'spotcheck') {
-                setSpotcheckOpen(true);
-              }
-              if (value === 'supervision') {
-                setSupervisionOpen(true);
-              }
-              if (value === 'annualappraisal') {
-                setAnnualOpen(true);
-              }
-            }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="new">New (before employee joined)</SelectItem>
-                {complianceTypeName?.toLowerCase().includes('spot') && (
-                  <SelectItem value="spotcheck">Complete Spot Check</SelectItem>
-                )}
-                {complianceTypeName?.toLowerCase().includes('supervis') && (
-                  <SelectItem value="supervision">Complete Supervision</SelectItem>
-                )}
-                {complianceTypeName?.toLowerCase().includes('appraisal') && (
-                  <SelectItem value="annualappraisal">Complete Annual Appraisal</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={recordType === 'date' ? 'default' : 'outline'}
+                onClick={() => setRecordType('date')}
+                className="flex-1 min-w-[140px]"
+              >
+                Date
+              </Button>
+              <Button
+                type="button"
+                variant={recordType === 'new' ? 'default' : 'outline'}
+                onClick={() => setRecordType('new')}
+                className="flex-1 min-w-[140px]"
+              >
+                New (before employee joined)
+              </Button>
+              {complianceTypeName?.toLowerCase().includes('spot') && (
+                <Button
+                  type="button"
+                  variant={recordType === 'spotcheck' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setRecordType('spotcheck');
+                    setSpotcheckOpen(true);
+                  }}
+                  className="flex-1 min-w-[140px]"
+                >
+                  Complete Spot Check
+                </Button>
+              )}
+              {complianceTypeName?.toLowerCase().includes('supervis') && (
+                <Button
+                  type="button"
+                  variant={recordType === 'supervision' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setRecordType('supervision');
+                    setSupervisionOpen(true);
+                  }}
+                  className="flex-1 min-w-[140px]"
+                >
+                  Complete Supervision
+                </Button>
+              )}
+              {complianceTypeName?.toLowerCase().includes('appraisal') && (
+                <Button
+                  type="button"
+                  variant={recordType === 'annualappraisal' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setRecordType('annualappraisal');
+                    setAnnualOpen(true);
+                  }}
+                  className="flex-1 min-w-[140px]"
+                >
+                  Complete Annual Appraisal
+                </Button>
+              )}
+            </div>
           </div>
 
           {recordType === 'date' ? (
