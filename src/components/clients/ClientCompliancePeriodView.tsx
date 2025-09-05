@@ -14,6 +14,7 @@ import { ClientSpotCheckViewDialog } from "./ClientSpotCheckViewDialog";
 import { ClientDeleteConfirmDialog } from "./ClientDeleteConfirmDialog";
 import { generateClientSpotCheckPdf } from "@/lib/client-spot-check-pdf";
 import { useCompany } from "@/contexts/CompanyContext";
+import { AddClientComplianceRecordModal } from "./AddClientComplianceRecordModal";
 
 interface ClientCompliancePeriodViewProps {
   complianceTypeId: string;
@@ -917,18 +918,22 @@ export function ClientCompliancePeriodView({
                                           <Trash2 className="w-4 h-4" />
                                         </Button>
                                      </>
-                                   ) : (
-                                     <Button 
-                                       variant="outline" 
-                                       size="sm"
-                                       onClick={() => {
-                                         setSelectedClient(client);
-                                         setSpotCheckDialogOpen(true);
-                                       }}
-                                     >
-                                       Add Record
-                                     </Button>
-                                   )}
+                                    ) : (
+                                      <AddClientComplianceRecordModal
+                                        clientId={client.id}
+                                        clientName={client.name}
+                                        complianceTypeId={complianceTypeId}
+                                        complianceTypeName={complianceTypeName || ''}
+                                        frequency={frequency}
+                                        periodIdentifier={selectedPeriod}
+                                        onRecordAdded={fetchData}
+                                        trigger={
+                                          <Button variant="outline" size="sm">
+                                            Add Record
+                                          </Button>
+                                        }
+                                      />
+                                    )}
                                  </div>
                                </TableCell>
                              </TableRow>
