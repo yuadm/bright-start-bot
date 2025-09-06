@@ -77,25 +77,6 @@ export function DocumentSigningContent() {
                   </p>
                 </div>
                 
-                <div className="flex flex-wrap gap-4">
-                  <Button 
-                    size="lg" 
-                    className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
-                    onClick={() => setActiveTab("templates")}
-                  >
-                    <Plus className="w-5 h-5 mr-2" />
-                    Create Template
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    className="border-border/50 hover:bg-muted/50"
-                    onClick={() => setActiveTab("requests")}
-                  >
-                    <Send className="w-5 h-5 mr-2" />
-                    Send for Signing
-                  </Button>
-                </div>
               </div>
               
               {/* Stats Cards */}
