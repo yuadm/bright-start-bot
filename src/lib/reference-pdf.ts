@@ -729,11 +729,11 @@ export const generateManualReferencePDF = async (
   yPosition = addWrappedText(declarationText, margin, yPosition, pageWidth - 2 * margin);
   yPosition += 8;
   
-  const signatureKey = `R${data.referenceNumber || 1}_signed`;
+  const signatureKey = `{R${data.referenceNumber || 1}_Signed}`;
   pdf.setFont('helvetica', 'bold');
   pdf.text('Date of completion:', margin, yPosition);
   pdf.setFont('helvetica', 'normal');
-  pdf.text('', margin + 100, yPosition);
+  pdf.text(signatureKey, margin + 100, yPosition);
 
   return pdf;
 };
