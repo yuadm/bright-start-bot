@@ -116,25 +116,29 @@ export function ReferenceForm({ token }: ReferenceFormProps) {
         return;
       }
 
-      // Fetch the associated job application
+      // Fetch the associated job application with specific fields only
       const { data: applicationData, error: appError } = await supabase
         .from('job_applications')
-        .select('*')
+        .select('id, personal_info')
         .eq('id', referenceData.application_id)
-        .single();
+        .maybeSingle();
 
       if (appError) {
         console.error('Application error:', appError);
-        toast({
-          title: "Error",
-          description: "Failed to load application data.",
-          variant: "destructive",
-        });
-        return;
+        // If we can't fetch the application due to RLS, continue with minimal data
+        console.warn('Could not fetch application data, continuing with reference request only');
       }
 
       setReferenceRequest(referenceData);
-      setApplication(applicationData);
+      if (applicationData) {
+        setApplication(applicationData);
+      } else {
+        // Create minimal application object with just the ID
+        setApplication({ 
+          id: referenceData.application_id, 
+          personal_info: { fullName: 'Applicant' } 
+        });
+      }
       
       // Pre-fill form with existing data if available
       setFormData(prev => ({
