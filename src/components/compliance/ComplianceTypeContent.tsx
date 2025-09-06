@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Users, CheckCircle, AlertTriangle, Clock, Shield, Eye, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download } from "lucide-react";
+import { ArrowLeft, Calendar, Users, CheckCircle, AlertTriangle, Clock, Shield, Eye, Edit, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Filter, Download, Search } from "lucide-react";
 import { usePermissions } from "@/contexts/PermissionsContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -115,6 +116,7 @@ export function ComplianceTypeContent() {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [branchFilter, setBranchFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
   const [completedByUsers, setCompletedByUsers] = useState<{ [key: string]: { name: string; created_at: string } }>({});
 
 // Spot check edit state
@@ -147,7 +149,15 @@ const [supervisionTarget, setSupervisionTarget] = useState<{ recordId: string } 
   const filteredAndSortedEmployees = useMemo(() => {
     let filtered = employeeStatusList;
 
-    // Apply status filter first
+    // Apply search filter
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(item =>
+        item.employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.employee.branch.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply status filter
     if (filteredStatus) {
       filtered = filtered.filter(item => item.status === filteredStatus);
     }
@@ -215,7 +225,7 @@ const [supervisionTarget, setSupervisionTarget] = useState<{ recordId: string } 
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [employeeStatusList, filteredStatus, branchFilter, sortField, sortDirection]);
+  }, [employeeStatusList, searchTerm, filteredStatus, branchFilter, sortField, sortDirection]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -975,6 +985,17 @@ const handleStatusCardClick = (status: 'compliant' | 'overdue' | 'due' | 'pendin
                       Employee Compliance Status
                     </CardTitle>
                     <div className="flex items-center gap-4">
+                      {/* Search */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search employees..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 w-64 bg-background border-border/50 focus:border-primary/50"
+                        />
+                      </div>
+                      
                       {/* Branch Filter */}
                       <div className="flex items-center gap-2">
                         <Filter className="w-4 h-4" />
