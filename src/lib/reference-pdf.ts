@@ -328,7 +328,7 @@ export const generateReferencePDF = async (
   const convictionsYesBox = reference.form_data.convictionsKnown === 'yes' ? '[X]' : '[ ]';
   const convictionsNoBox = reference.form_data.convictionsKnown === 'no' ? '[X]' : '[ ]';
   const convictionsAnswer = reference.form_data.convictionsKnown ? `${convictionsYesBox} Yes    ${convictionsNoBox} No` : 'Not answered';
-  pdf.text(`Answer: ${convictionsAnswer}`, margin, yPosition);
+  pdf.text(convictionsAnswer, margin, yPosition);
   yPosition += lineHeight + 8;
 
   ensureSpace(50);
@@ -339,7 +339,7 @@ export const generateReferencePDF = async (
   const proceedingsYesBox = reference.form_data.criminalProceedingsKnown === 'yes' ? '[X]' : '[ ]';
   const proceedingsNoBox = reference.form_data.criminalProceedingsKnown === 'no' ? '[X]' : '[ ]';
   const proceedingsAnswer = reference.form_data.criminalProceedingsKnown ? `${proceedingsYesBox} Yes    ${proceedingsNoBox} No` : 'Not answered';
-  pdf.text(`Answer: ${proceedingsAnswer}`, margin, yPosition);
+  pdf.text(proceedingsAnswer, margin, yPosition);
   yPosition += lineHeight + 8;
 
   // Criminal details if provided
